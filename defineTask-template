@@ -40,7 +40,7 @@ aws iam put-role-policy --role-name ${TASK_EXECUTION_ROLE_NAME} --policy-name ${
   ],
   \"Version\": \"2012-10-17\"
 }"
-
+ 
 
 echo "*** Register task definition"
 aws ecs register-task-definition  \
