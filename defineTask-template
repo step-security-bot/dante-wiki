@@ -63,7 +63,7 @@ aws ecs register-task-definition  \
   --cpu    256 \
   --memory 512 
 
-echo "*** Registration of task definition completed"
+echo "*** Registration of task definition completed" 
 
 
    
