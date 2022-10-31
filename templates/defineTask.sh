@@ -77,7 +77,8 @@ aws ecs register-task-definition  \
       }
     },         
     \"essential\":     true, 
-    \"entryPoint\":    [\"/entrypoint.sh\"]
+    \"entryPoint\":    [\"/entrypoint.sh\"], 
+    \"command\":       [\"/entrypoint.sh\"] 
     }]"  \
   --requires-compatibilities FARGATE \
   --execution-role-arn ${TASK_EXECUTION_ROLE} \

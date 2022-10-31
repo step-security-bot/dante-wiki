@@ -1,46 +1,35 @@
 #!/bin/bash
 
 source ./global-names.sh
-if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 FAMILYNAME" >&2
+if [ "$#" -ne 2 ]; then
+  echo "Usage: $0 FAMILYNAME TASK_REVISION" >&2
   exit 1
 fi
+
 FAMILY_NAME=$1
+TASK_REVISION=$2
 
 
 CLUSTER_NAME="cluster-${FAMILY_NAME}"
 
 echo "*** Creating cluster ${CLUSTER_NAME}"
-aws ecs create-cluster --cluster-name ${CLUSTER_NAME} 
-
-
-## A service runs a certain number of instances of a task definition inside of a cluster
-#  We provide the name of the task definition and the version as parameters
-#  We name the service after the 
+aws ecs create-cluster --cluster-name ${CLUSTER_NAME} > /dev/null
 
 
 TASK_DEFINITION_NAME="task-${FAMILY_NAME}"
 
 
 
-echo ______________________________________________________________________
-#### ????????????????????????????????????????????????????????????????????
-## TASK_DEFINITION_VERSION=4
-
-
-
-## Derive proper names
-SERVICE_NAME="Service-running${TASK_DEFINITION_NAME}"
+SERVICE_NAME="Service-running-${TASK_DEFINITION_NAME}"
 ## TASK_DEFINITION_ARN="arn:aws:ecs:${REGION_ID}:${ACCOUNT_ID}:task-definition/${TASK_DEFINITION_NAME}:${TASK_DEFINITION_VERSION}"
 
-TASK_DEFINITION_SPEC="${FAMILY_NAME}"
-# when no revision is given, last version is used
+TASK_DEFINITION_SPEC="${FAMILY_NAME}:${TASK_REVISION}"
 
 
 ## Obtain resources we will need: subnets and security groups
 source prepareSubnets.sh
 echo "*** Using subnets: " ${SUBNETS}
-source prepareSecurityGroup.sh
+source prepareSecurityGroup.sh ${FAMILY_NAME}
 echo "*** Using security group: " ${SECURITY_GROUP_ID}
 
 ##### WORKS !!
@@ -52,4 +41,4 @@ aws ecs create-service  --service-name ${SERVICE_NAME} \
   --desired-count 1                        \
   --launch-type "FARGATE"                  \
   --network-configuration "awsvpcConfiguration={subnets=[${SUBNETS}], securityGroups=[${SECURITY_GROUP_ID}], assignPublicIp=ENABLED}" \
-  --cluster ${CLUSTER_NAME}
+  --cluster ${CLUSTER_NAME}  > /dev/null

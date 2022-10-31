@@ -34,3 +34,12 @@ aws ec2 delete-security-group --group-name ${SECURITY_GROUP_NAME} > /dev/null
 
 echo "*** Deleting cluster: ${CLUSTER_NAME}"
 aws ecs delete-cluster --cluster ${CLUSTER_NAME} > /dev/null
+
+
+####### MUST delete all builds as well separately
+
+echo "*** Delete build project ${PROJECT_NAME}"
+aws codebuild delete-project --name ${PROJECT_NAME}
+
+echo "*** Deleting Repository ${REPOSITORY_NAME} and all included images (--force)"
+aws ecr delete-repository --repository-name ${REPOSITORY_NAME} --force > /dev/null

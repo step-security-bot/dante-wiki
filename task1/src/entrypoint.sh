@@ -1,3 +1,11 @@
 #!/bin/sh
+
 ssh-keygen -A
-exec /usr/sbin/sshd -D -e "$@"
+
+echo "After ssh-keygen"
+
+# exec /usr/sbin/sshd -D -e "$@"
+
+/usr/sbin/sshd -D 
+
+echo "after sshd"
