@@ -1,19 +1,23 @@
-FROM alpine
+# Using alpine, as this is the smallest Linux installation for docker available.
+# Using a fixed number instead of latest in the interest of a reproducible build.
+FROM alpine:3.15
 
 LABEL "vendor"="Clemens H. Cap"
 LABEL "maintainer"="clemens.cap@uni-rostock.de"
 
-# copy in a local file
+# copy in a local file as entry point
 COPY entrypoint.sh /
 
 # Upgrade existing packages in the base image
-RUN apk --no-cache upgrade
+RUN apk update              \  
+    apk --no-cache upgrade  \
+    apk add --no-cache openssh                                     \ 
+    echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config      \
+    adduser -h /home/cap -s /bin/sh -D cap                         \
+    echo -n 'cap:pass' | chpasswd   \
+    # remove any information which might have been cached
+    rm -rf /var/cache/apk/*   \
 
-# Install openssh
-RUN apk add --update --no-cache openssh 
-RUN echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
-RUN adduser -h /home/sshuser -s /bin/sh -D sshuser
-RUN echo -n 'sshuser:some-password' | chpasswd
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 22

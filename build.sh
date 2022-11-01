@@ -108,26 +108,6 @@ aws codebuild create-project \
    --artifacts "{\"type\": \"NO_ARTIFACTS\"}" \
   --service-role  ${BUILD_SERVICE_ROLE}     > /dev/null
 
-echo "*** UPDATING the project tag=${IMAGE_TAG}"
-aws codebuild create-project \
-  --name ${PROJECT_NAME} \
-  --source "{\"type\": \"S3\", \"location\": \"${BUILD_BUCKET_NAME}/${BUILD_FILE_NAME}\"}"    \
-  --environment "{                                                            
-    \"type\": \"LINUX_CONTAINER\",                                               
-    \"image\": \"aws/codebuild/standard:4.0\",                                       
-    \"computeType\": \"BUILD_GENERAL1_SMALL\",           
-    \"environmentVariables\": [                                                   
-      {\"name\": \"AWS_DEFAULT_REGION\", \"value\": \"${REGION_ID}\"},       
-      {\"name\": \"AWS_ACCOUNT_ID\",     \"value\": \"${ACCOUNT_ID}\"},           
-      {\"name\": \"IMAGE_REPO_NAME\",    \"value\": \"${REPOSITORY_NAME}\"},        
-      {\"name\": \"IMAGE_TAG\",          \"value\": \"${IMAGE_TAG}\"}        
-    ],
-    \"privilegedMode\": true } " \
-   --artifacts "{\"type\": \"NO_ARTIFACTS\"}" \
-  --service-role  ${BUILD_SERVICE_ROLE}     > /dev/null
-
-
-
 echo "*** Starting the build process...will email you as soon as done"
 aws codebuild start-build \
     --project-name ${PROJECT_NAME} \

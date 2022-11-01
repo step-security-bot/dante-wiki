@@ -10,7 +10,11 @@ using a set of shell script commands. It documents learning processes in Amazon 
 * Building the docker image using **CodeBuild**
 * Informing the user by email on the build process using **SNS** and **CloudWatch**
 * Deploying the docker image to Amazon Fargate using **ECS Elastic Container Service**
-* Using the service, i.e. locating the
+* Determining the public IP addresses bound to the tasks
+* Connecting these IP addresses to a predetermined domain using **Route53**
+* Managing the security groups required for the network access
+* Setting up the roles providing the necessary permissions using **ECS IAM**
+
 
 **Todo:
 * Connecting the scripts to a github push event
