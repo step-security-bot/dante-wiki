@@ -9,14 +9,27 @@ LABEL "maintainer"="clemens.cap@uni-rostock.de"
 COPY entrypoint.sh /
 
 # Upgrade existing packages in the base image
-RUN apk update              \  
-    apk --no-cache upgrade  \
-    apk add --no-cache openssh                                     \ 
-    echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config      \
-    adduser -h /home/cap -s /bin/sh -D cap                         \
-    echo -n 'cap:pass' | chpasswd   \
-    # remove any information which might have been cached
-    rm -rf /var/cache/apk/*   \
+RUN apk update;                   \  
+    apk --no-cache upgrade;       \
+    apk add --no-cache openssh;   \                                       
+    rm -rf /var/cache/apk/*   
+
+# Add user cap, pass for entry (***** INSECURE *****)
+RUN echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config ;     \
+    adduser -h /home/cap -s /bin/sh -D cap   ;                      \
+    echo -n 'cap:pass' | chpasswd                                 
+
+# Make user cap a sudo user
+RUN adduser -D cap;                                           \
+    mkdir -p /etc/sudoers.d ;                                 \
+    echo "cap ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/cap ; \
+    chmod 0440 /etc/sudoers.d/cap
+
+# Install sudo, which is not part of alpine - allows to do a sudo su for gaining root
+RUN apk update;               \
+    apk --no-cache upgrade;   \
+    apk add --no-cache sudo;  \
+    rm -rf /var/cache/apk/*       
 
 ENTRYPOINT ["/entrypoint.sh"]
 

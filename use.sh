@@ -33,8 +33,10 @@ then
     \"Changes\": [{
       \"Action\": \"UPSERT\",
       \"ResourceRecordSet\": {\"Name\": \"${HOST_ADDR}\", \"Type\": \"A\", \"TTL\": 10, \"ResourceRecords\": [{\"Value\": \"${PUBLIC_IP}\"} ] } } ] } " > /dev/null
+  echo "    Revoking local ssh key, to mkae things easier"
+  ssh-keygen -R ${HOST_ADDR}
+  echo
   echo "*** Connected to: ${HOST_ADDR}"
-  
 else
 echo "*** Found more than one task, must iterate over all tasks"
 echo
@@ -56,6 +58,9 @@ do
     \"Changes\": [{
       \"Action\": \"UPSERT\",
       \"ResourceRecordSet\": {\"Name\": \"${HOST_ADDR}\", \"Type\": \"A\", \"TTL\": 10, \"ResourceRecords\": [{\"Value\": \"${PUBLIC_IP}\"} ] } } ] } " > /dev/null
+  echo "    Revoking local ssh key, to make things easier"
+  ssh-keygen -R ${HOST_ADDR}
+  echo 
   echo "** Connected to: ${HOST_ADDR}"
   NUMBER=$(($NUMBER + 1))
 done 

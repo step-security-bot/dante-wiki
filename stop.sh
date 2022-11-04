@@ -23,7 +23,7 @@ echo
 for TASK_ARN in $TASK_ARNS
 do 
   echo "  Stopping task with arn: " $TASK_ARN
-  aws ecs stop-task --cluster ${CLUSTER_NAME} --task ${TASK_ARN}
+  aws ecs stop-task --cluster ${CLUSTER_NAME} --task ${TASK_ARN} > /dev/null
 done  
 
 echo "*** Deleting all services ${SERVICE_NAME} in cluster ${CLUSTER_NAME}"

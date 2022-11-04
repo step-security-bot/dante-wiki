@@ -12,13 +12,12 @@ TASK_REVISION=$2
 
 CLUSTER_NAME="cluster-${FAMILY_NAME}"
 
+echo __________________________________
 echo "*** Creating cluster ${CLUSTER_NAME}"
 aws ecs create-cluster --cluster-name ${CLUSTER_NAME} > /dev/null
 
 
 TASK_DEFINITION_NAME="task-${FAMILY_NAME}"
-
-
 
 SERVICE_NAME="Service-running-${TASK_DEFINITION_NAME}"
 ## TASK_DEFINITION_ARN="arn:aws:ecs:${REGION_ID}:${ACCOUNT_ID}:task-definition/${TASK_DEFINITION_NAME}:${TASK_DEFINITION_VERSION}"
