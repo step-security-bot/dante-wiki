@@ -1,3 +1,9 @@
 .DS_Store
 deprecated/
 *.zip
+mupdf-1.20.3-source/
+mupdf-1.20.3-source.tar
+vendor/
+customize-PRIVATE.sh
+vendor/
+content/

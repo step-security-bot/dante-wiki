@@ -28,7 +28,8 @@ source getRepositoryName.sh ${FAMILY_NAME}
 IMAGE_NAME="${REPOSITORY_URI}:${IMAGE_TAG}"
 echo
 
-## CREATING ROLE
+
+#region CREATING TASK EXECUTION ROLE
 echo __________________________________
 echo "*** Creating a role for executing the task..."
 TASK_EXECUTION_ROLE_NAME="role-for-executing-task-${FAMILY_NAME}"
@@ -49,7 +50,8 @@ aws iam put-role-policy --role-name ${TASK_EXECUTION_ROLE_NAME} --policy-name ${
       \"Action\": [
         \"ecr:GetAuthorizationToken\",  \"ecr:BatchCheckLayerAvailability\",
         \"ecr:GetDownloadUrlForLayer\", \"ecr:BatchGetImage\",
-        \"logs:CreateLogStream\", \"logs:CreateLogGroup\", \"logs:PutLogEvents\"
+        \"logs:CreateLogStream\", \"logs:CreateLogGroup\", \"logs:PutLogEvents\",
+        \"elasticfilesystem:*\"
       ],
       \"Resource\": \"*\",
       \"Effect\": \"Allow\"
@@ -57,22 +59,30 @@ aws iam put-role-policy --role-name ${TASK_EXECUTION_ROLE_NAME} --policy-name ${
   ],
   \"Version\": \"2012-10-17\"
 }"
- 
+
+echo "*** Adding AWS managed policy AmazonElasticFileSystemFullAccess"
+aws iam attach-role-policy --role-name ${TASK_EXECUTION_ROLE_NAME} --policy-arn arn:aws:iam::aws:policy/AmazonElasticFileSystemFullAccess
+ #endregion
 
 
-
+#region LOCAL TASK SPECIFICATIONS
 echo __________________________________
-echo "*** Getting Portmappings"
-PORT_MAPPINGS=`cat ${FAMILY_NAME}/def/portmappings.json`
-echo ${PORT_MAPPINGS}
+echo "*** Getting local task specifications"
+echo "    Portmappings"
+PORT_MAPPINGS=`cat ${FAMILY_NAME}/def/portmappings.json5 | json5conv`
+echo "      ${PORT_MAPPINGS}"
 echo
 
-echo __________________________________
-echo "*** Getting Volume Specifications"
-VOLUMES=`cat ${FAMILY_NAME}/def/volumes.json`
-echo ${VOLUMES}
+echo "    Volumes"
+VOLUMES=`cat ${FAMILY_NAME}/def/volumes.json5 | json5conv`
+echo "      ${VOLUMES}"
 echo
 
+echo "    Mountpoints"
+MOUNT_POINTS=`cat ${FAMILY_NAME}/def/mountpoints.json5 | json5conv`
+echo "    ${MOUNT_POINTS}"
+echo
+#endregion
 
 
 echo __________________________________
@@ -87,15 +97,16 @@ aws ecs register-task-definition  \
     \"logConfiguration\": {
       \"logDriver\": \"awslogs\",
       \"options\": {
-        \"awslogs-group\": \"firelens-container\",
+        \"awslogs-group\": \"${FAMILY_NAME}-logs-group\",
         \"awslogs-region\": \"${REGION_ID}\",
         \"awslogs-create-group\": \"true\",
-        \"awslogs-stream-prefix\": \"firelens\"
+        \"awslogs-stream-prefix\": \"${FAMILY_NAME}\"
       }
     },         
     \"essential\":     true, 
     \"entryPoint\":    [\"/entrypoint.sh\"], 
-    \"command\":       [\"/entrypoint.sh\"] 
+    \"command\":       [\"/entrypoint.sh\"],
+    \"mountPoints\":   ${MOUNT_POINTS}
     }]"  \
   --requires-compatibilities FARGATE \
   --volumes "${VOLUMES}"  \

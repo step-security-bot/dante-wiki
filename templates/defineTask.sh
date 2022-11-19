@@ -55,25 +55,30 @@ aws iam put-role-policy --role-name ${TASK_EXECUTION_ROLE_NAME} --policy-name ${
 }"
  
 
+
+
+echo __________________________________
+echo "*** Portmappings"
+PORT_MAPPINGS=`cat ${FAMILY_NAME}/def/portmappings.json`
+echo ${PORT_MAPPINGS}
+echo
+
+
 echo "*** Register task definition"
 aws ecs register-task-definition  \
   --family        ${FAMILY_NAME}  \
   --network-mode  "awsvpc"  \
   --container-definitions "[{
-    \"name\":    \"${CONTAINER_NAME}\", 
-    \"image\":   \"${IMAGE_NAME}\",
-    \"portMappings\":  [ 
-        {\"containerPort\":  80,  \"hostPort\":  80,  \"protocol\": \"tcp\"},
-        {\"containerPort\":  22,  \"hostPort\":  22,  \"protocol\": \"tcp\"},
-        {\"containerPort\": 443,  \"hostPort\": 443,  \"protocol\": \"tcp\"}
-         ],
+    \"name\":           \"${CONTAINER_NAME}\", 
+    \"image\":          \"${IMAGE_NAME}\",
+    \"portMappings\":   ${PORT_MAPPINGS},
     \"logConfiguration\": {
       \"logDriver\": \"awslogs\",
       \"options\": {
-        \"awslogs-group\": \"firelens-container\",
+        \"awslogs-group\": \"${FAMILY_NAME}-log-group\",
         \"awslogs-region\": \"${REGION_ID}\",
         \"awslogs-create-group\": \"true\",
-        \"awslogs-stream-prefix\": \"firelens\"
+        \"awslogs-stream-prefix\": \"${FAMILY_NAME}-log\"
       }
     },         
     \"essential\":     true, 

@@ -8,7 +8,8 @@ FAMILY_NAME=$1
 
 export REPOSITORY_NAME="reposi-${FAMILY_NAME}"
 
-### REPOSITORY
+
+#region *** REPOSITORY *** 
 echo ____________________________________________
 echo "*** Preparing repository ${REPOSITORY_NAME}"
 echo "    Checking if it already exists..."
@@ -24,23 +25,28 @@ else
   echo "*** URI of repository just created is: " ${REPOSITORY_URI}
 fi
 echo
+#endregion
 
+#region *** LOCAL DIRECTORY ***
 echo ____________________________________________
 echo "*** Prepare a local directory structure"
-mkdir ${FAMILY_NAME}
-mkdir ${FAMILY_NAME}/build
-mkdir ${FAMILY_NAME}/src
-mkdir ${FAMILY_NAME}/def
-mkdir ${FAMILY_NAME}/efs
 
+#region ** make local file system
+mkdir containers/${FAMILY_NAME}
+mkdir containers/${FAMILY_NAME}/build
+mkdir containers/${FAMILY_NAME}/src
+mkdir containers/${FAMILY_NAME}/def
+mkdir containers/${FAMILY_NAME}/efs
+#endregion
 
-# copy but do not overwrite a possibly existing file
-cp -n templates/*.json ${FAMILY_NAME}/def
-cp -n templates/Dockerfile    ${FAMILY_NAME}/src/
-cp -n templates/buildspec.yml ${FAMILY_NAME}/src/
-cp -n templates/entrypoint.sh ${FAMILY_NAME}/src/
+#region ** copy but do not overwrite a possibly existing file
+cp -n templates/*.json5       containers/${FAMILY_NAME}/def
+cp -n templates/Dockerfile    containers/${FAMILY_NAME}/src/
+cp -n templates/buildspec.yml containers/${FAMILY_NAME}/src/
+cp -n templates/entrypoint.sh containers/${FAMILY_NAME}/src/
+#endregion
 
-# remove any build artifacts which might still be there
-rm    ${FAMILY_NAME}/build/*
-
-
+#region ** remove any build artifacts which might still be there
+rm    containers/${FAMILY_NAME}/build/*
+#endregion
+#endregion

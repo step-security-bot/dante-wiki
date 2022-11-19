@@ -17,9 +17,13 @@ if [ "$#" -ge 3 ]; then
   exit 1
 fi
 
+
+
 echo 
 echo __________________________________
-aws efs create-file-system  --creation-token ${FS_NAME} --performance-mode generalPurpose --throughput-mode bursting --availability-zone-name ${AVZN} | jq -r '.FileSystemId'
+aws efs create-file-system  --creation-token ${FS_NAME} --tags "[{\"Key\":\"Name\", \"Value\":\"${FS_NAME}\"}]" \
+  --performance-mode generalPurpose --throughput-mode bursting 
+  --region ${REGION_ID} --availability-zone-name ${AVZN} | jq -r '.FileSystemId'
 
 aws efs describe-file-systems --creation-token ${FS_NAME} | jq -r '.FileSystems | .[0] | .FileSystemId'
 

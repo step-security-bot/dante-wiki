@@ -1,8 +1,0 @@
-[{
-  "name": "VolumeName",
-  "efsVolumeConfiguration": {
-    "fileSystemId": "fs-05453e636c70bce69",
-    "rootDirectory": "/var/www/html",
-    "transitEncryption": "DISABLED"
-  }
-}]

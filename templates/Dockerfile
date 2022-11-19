@@ -1,4 +1,6 @@
-FROM alpine
+# Using alpine, as this is the smallest Linux installation for docker available.
+# Using a fixed number instead of latest in the interest of a reproducible build.
+FROM alpine:3.15
 
 LABEL "vendor"="Clemens H. Cap"
 LABEL "maintainer"="clemens.cap@uni-rostock.de"

@@ -28,15 +28,22 @@ PROJECT_NAME="project-${FAMILY_NAME}"
 echo
 echo __________________________________
 echo "*** Preparing an S3 bucket to hold the source input of the build process"
+echo
 rm -Rf ${FAMILY_NAME}/build/*
-cp ${FAMILY_NAME}/src/*     ${FAMILY_NAME}/build
+cp -r ${FAMILY_NAME}/src/*     ${FAMILY_NAME}/build
 cd ${FAMILY_NAME}/build
 zip -r ../${BUILD_FILE_NAME} *
 cd ../..
 rm -Rf ${FAMILY_NAME}/build/*
-aws s3api create-bucket --bucket ${BUILD_BUCKET_NAME} --create-bucket-configuration LocationConstraint=${REGION_ID}
+echo -n "    creating S3 bucket..."
+aws s3api create-bucket --bucket ${BUILD_BUCKET_NAME} --create-bucket-configuration LocationConstraint=${REGION_ID} 
+echo "    DONE"
+echo -n "    cleaning S3 bucket..."
 aws s3 rm s3://${BUILD_BUCKET_NAME} --recursive
-aws s3 cp ${FAMILY_NAME}/${BUILD_FILE_NAME} s3://${BUILD_BUCKET_NAME}/${BUILD_FILE_NAME}
+echo "    DONE"
+echo -n "    copying into S3 bucket..."
+aws s3 cp ${FAMILY_NAME}/${BUILD_FILE_NAME} s3://${BUILD_BUCKET_NAME}/${BUILD_FILE_NAME} 
+echo "    "DONE
 echo \n "    ls of s3 bucket shows: "
 aws s3 ls s3://${BUILD_BUCKET_NAME}/${BUILD_FILE_NAME}
 echo
@@ -45,7 +52,7 @@ echo
 source getRepositoryName.sh ${FAMILY_NAME}
 
 
-### Create a service role
+#region *** Create a service role 
 echo __________________________________
 echo "*** Creating a service role"
 BUILD_SERVICE_ROLE_NAME="build-service-role-${FAMILY_NAME}"
@@ -87,11 +94,11 @@ aws iam put-role-policy --role-name ${BUILD_SERVICE_ROLE_NAME} --policy-name ${B
   ],
   \"Version\": \"2012-10-17\"
 }"
-
 echo
+#endregion
 
 echo __________________________________
-echo "*** CREATING the build project with tag=${IMAGE_TAG}"
+echo "*** CREATING the build project ${PROJECT_NAME} with tag=${IMAGE_TAG}"
 aws codebuild create-project \
   --name ${PROJECT_NAME} \
   --source "{\"type\": \"S3\", \"location\": \"${BUILD_BUCKET_NAME}/${BUILD_FILE_NAME}\"}"    \

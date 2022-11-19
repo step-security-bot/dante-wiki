@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "tasks": [
+    {"label": "generate LAP",   "command": "containers/lap/bin/generate.sh"},
+    {"label": "generate MYSQL", "command": "containers/my-mysql/bin/generate.sh"}
+  ]
+}

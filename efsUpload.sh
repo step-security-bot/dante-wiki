@@ -5,7 +5,6 @@
 source ./global-names.sh
 
 # Parse the command line
-
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 DIRECTORY-NAME  EFS-NAME" >&2
   exit 1
@@ -14,6 +13,8 @@ else
   EFS_NAME=$2
 fi
 
+
+#region LOOK FOR EFS
 echo
 echo __________________________________
 echo "*** Looking for the arn of the EFS with name: ${EFS_NAME}"
@@ -21,8 +22,20 @@ echo "*** Looking for the arn of the EFS with name: ${EFS_NAME}"
 EFS_ARN=`aws efs describe-file-systems | jq  '.FileSystems' | jq -r --arg EFS_NAME "${EFS_NAME}" 'map(select(.Name==$EFS_NAME))' | jq -r '.[0].FileSystemArn'`
 EFS_ID=`aws efs describe-file-systems | jq  '.FileSystems' | jq -r --arg EFS_NAME "${EFS_NAME}" 'map(select(.Name==$EFS_NAME))' | jq -r '.[0].FileSystemId'`
 EFS_AZN=`aws efs describe-file-systems | jq  '.FileSystems' | jq -r --arg EFS_NAME "${EFS_NAME}" 'map(select(.Name==$EFS_NAME))' | jq -r '.[0].AvailabilityZoneName'`
-echo "*** Found id ${EFS_ID} and arn ${EFS_ARN} in availability zone ${EFS_AZN}"
+
 echo
+
+if [[ "$EFS_AZN" == "null" ]]; then
+  echo "*** FATAL ERROR: Could not find filesystem ${EFS_NAME}"
+  echo
+  echo "*** TERMINATING ***"
+  echo
+  exit 1
+else
+  echo "*** Found id ${EFS_ID} and arn ${EFS_ARN} in availability zone ${EFS_AZN}"
+fi
+#endregion
+
 
 echo __________________________________
 BUCKET_NAME="s3-for-transfer-${EFS_NAME}"
@@ -75,8 +88,8 @@ BUCKET_ARN="arn:aws:s3:::${BUCKET_NAME}"
 
 ### DATASYNC source location is S3
 echo __________________________________
-echo "*** Creating a datasync source location, using S3 arn: ${BUCKET_ARN}" 
-SRC_ARN=`aws datasync create-location-s3 --s3-bucket-arn ${BUCKET_ARN}  --s3-config "{\"BucketAccessRoleArn\": \"${TRANSFER_SERVICE_ROLE}\"}" | jq -r '.LocationArn'  `
+echo "*** Creating a datasync source location, using S3 arn: ${BUCKET_ARN} and role ${TRANSFER_SERVICE_ROLE}"
+SRC_ARN=`aws datasync create-location-s3 --s3-bucket-arn ${BUCKET_ARN}  --s3-config "{\"BucketAccessRoleArn\": \"${TRANSFER_SERVICE_ROLE}\"}" | jq -r '.LocationArn' `
 echo "** Obtained source location with ARN ${SRC_ARN}"
 echo
 
@@ -93,7 +106,7 @@ SECURITY_GROUP_ID=`aws ec2 describe-security-groups --group-name ${SECURITY_GROU
 echo
 echo "*** obtained group id: " ${SECURITY_GROUP_ID}
 echo "*** Authorizing for 22, 80, 443"
-aws ec2 authorize-security-group-ingress --group-id ${SECURITY_GROUP_ID} --protocol tcp --port  22 --cidr 0.0.0.0/0 > /dev/null
+aws ec2 authorize-security-group-ingress --group-id ${SECURITY_GROUP_ID} --protocol tcp --port 0-65535 --cidr 0.0.0.0/0 > /dev/null
 echo 
 
 ### SUBNET
