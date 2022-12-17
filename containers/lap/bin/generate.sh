@@ -22,3 +22,5 @@ echo "BUILDING container with name ${CONTAINER_NAME} from docker context at ${DI
 echo ""
 
 docker build -t ${CONTAINER_NAME} ${DIR}/../src
+
+echo " "; echo "DONE" ; echo " "

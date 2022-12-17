@@ -4,6 +4,9 @@
 #
 # picks up the mysql root password from a ../../conf file customize-PRIVATE.sh
 
+
+# todo: also add a abckup user for this particular data base
+
 usage() {
   echo "Usage: $0 USER(no - only _)   PASSWORD" >&2
   exit 1

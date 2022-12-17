@@ -74,13 +74,14 @@ echo " "
 echo "_____ Part 2: Starting LAP ____ ${LAP_SPEC}"
 ${DIR}/run.sh ${LAP_SPEC}
 
+echo " "
 
 ## we must check if we should run an initialization of the system / DB !!
 #  it is possible that an initialization has already been run !!
 #    (eg as part of add-wiki.sh or similar)
 
 
-
+echo -e "\e[1;41m completed RUN LAP and MY-MYSQL \e[0m"
 
 
 

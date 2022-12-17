@@ -3,19 +3,29 @@
 # run a mysql database on local docker infrastructure using docker context in my-mysql/src
 
 
-DEFAULT_VOLUME_NAME=my-mysql-data-volume
+
+# get directory where this script resides wherever it is called from
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source ${DIR}/../../../conf/customize-PRIVATE.sh
+
+
 
 usage() {
+  echo ""
   echo "Usage: $0   "
   echo "  --db       DB_VOLUME_NAME     (use DB_VOLUME_NAME as DB volume) "
   echo "  --cleandb  DB_VOLUME_NAME     (use DB_VOLUME_NAME as DB volume and clean existing volume before use) "
-  echo "  NO PARAM:  ${DEFAULT_VOLUME_NAME} as DB volume and clean volume before use"
+  echo "  NO PARAM:  ${DEFAULT_DB_VOLUME_NAME} as DB volume and clean volume before use"
 }
 
-
+##
+## Read command line
+# region
 if [ "$#" -eq 0  ]; then
   usage
-  DB_VOLUME_NAME=${DEFAULT_VOLUME_NAME}
+  DB_VOLUME_NAME=${DEFAULT_DB_VOLUME_NAME}
+  DB_MUST_CLEAN=doit
 else
   if [ "$#" -le 3 ]; then
     while (($#)); do
@@ -39,29 +49,29 @@ else
   fi
 fi
 
-
-
 echo ""
-echo "DB_VOLUME_NAME  ${DB_VOLUME_NAME}  "
+echo "*** DB_VOLUME_NAME  ${DB_VOLUME_NAME}  "
 if [ "$DB_MUST_CLEAN" == "doit" ]; then
-  echo "CLEANING volume before use"
+  echo "*** CLEANING volume before use"
 else
-  echo "NOT cleaning volume before use"
+  echo "*** NOT cleaning volume before use"
 fi
+echo ""
 
-## some other parameters
-MYSQL_ROOT_PASSWORD="aligator"
+
 
 CONTAINER_NAME=my-mysql
 HOST_NAME=${CONTAINER_NAME}
 
-# mount point for the volume
+# mount point for the database volume
 MOUNT=/var/mysql
 NETWORK=dante-network
+
 
 ##
 ## CLEAN UP
 ##
+#region
 echo ""
 echo "*** Cleaning up old ressources:"
 
@@ -86,7 +96,9 @@ if [ "$DB_MUST_CLEAN" == "doit" ]; then
 else
   echo "Keeping DB volume ${DB_VOLUME_NAME}"
 fi
-echo ""
+echo " "
+# endregion
+
 
 ##
 ## CREATE
@@ -98,12 +110,17 @@ docker network create ${NETWORK}
 echo -n "*** Creating DB container ${CONTAINER_NAME} and got id= "
 
 # add below if we want direct ssh access
-#  -p 22:22                                                       \
-docker run -d --name ${CONTAINER_NAME}                           \
-  --network ${NETWORK}                                           \
+#  -p 22:22                                                 \
+
+# export environment variables to the docker container for use there and in the entry point
+
+docker run -d --name ${CONTAINER_NAME}                      \
+  --network ${NETWORK}                                      \
   -h ${HOST_NAME}                                           \
-  -e MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"                      \
-  --volume ${DB_VOLUME_NAME}:/${MOUNT}                              \
+  -e MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"           \
+  -e MYSQL_DUMP_USER="${MYSQL_DUMP_USER}"                   \
+  -e MYSQL_DUMP_PASSWORD"${MYSQL_DUMP_PASSWORD}"            \
+  --volume ${DB_VOLUME_NAME}:/${MOUNT}                      \
   ${CONTAINER_NAME}                          
 
 echo ""
@@ -116,11 +133,11 @@ echo ""
 #
 #echo "*   Container health check passed"
 
-echo -n "*** MY-MYSQL is now running at "  
-docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME} 
-echo -n "   as host ${HOST_NAME}"
+echo -n "*** MY-MYSQL is now running at "  `docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME}`
+echo  "   as host ${HOST_NAME}"
 
-echo ""
+
+echo " "
 
 
 

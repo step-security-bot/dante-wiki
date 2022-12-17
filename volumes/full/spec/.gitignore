@@ -1,0 +1,7 @@
+#
+# This .gitignore file is used for pushing to dante.
+#
+#
+**/.DS_Store
+**/LOGFILE
+**/TESTGITIGNORE

@@ -1,5 +1,16 @@
 #!/bin/sh
 
+
+
+## 
+## Fix permissions
+##
+chmod 400 /etc/ssl/apache2/server.key
+chmod 444 /etc/ssl/apache2/server.pem
+
+
+
+
 ###
 ### SSH: Portion we need when we want ssh access for container debugging
 ###
@@ -18,11 +29,16 @@ echo
 ## END SSH
 ##
 
+echo -n "** Generating our php.ini file..."
+rm -f /etc/php7/php-new.ini
+cat /etc/php7/php.ini /etc/php7/mediawiki-alpine-lamp-php.ini > /etc/php7/php-new.ini
+echp "DONE with generating php.ini file"
+
 ##
 ## PHP-FPM7: Start PHP-FPM7
 ##
 echo -n "** Starting php-fpm7 in background..."
-/usr/sbin/php-fpm7
+/usr/sbin/php-fpm7 --php-ini /etc/php7/php-new.ini
 echo "DONE with php-fpm7"
 echo
 ##
@@ -30,9 +46,9 @@ echo
 ##
 
 ##
-## APACHE: Start apache
+## APACHE: Start apache  TODO: ev exec einbauen 
 ##
-echo -n "** Starting apache as httpd in background..."
+echo -n "** Starting apache..."
 /usr/sbin/httpd -D FOREGROUND 
 echo "DONE with apache"
 echo
@@ -40,22 +56,5 @@ echo
 ## END Apache
 ##
 
-
-##
-## Start Database  TODO: really in this LAP entry point????
-##
-#
-# We do this with an exec. This ensures that 
-#
-###  IMPORTANT:    https://stackoverflow.com/questions/39082768/what-does-set-e-and-exec-do-for-docker-entrypoint-scripts
-
-exec /usr/bin/mysqld --user=root --console
-
-
-
-##
-## keep docker alive for entry via ssh and log cheking, even if one of the above processes
-## fail to start or crash on startup
-##
 sleep infinity
   

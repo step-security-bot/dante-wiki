@@ -1,12 +1,16 @@
-#!/bin/sh
+#!/bin/bash
+
+#### THIS does not dynamically add a wiki but parses the directories which are present in the volume !!!!!
+
+##### TODO: must make this more dynamic (it actually SHOULD parse the directories but currently does not yet)
 
 # This is an idempotent script which initializes a wiki installation existing on a directory of volume
 # If the wiki is already installed, it does not break anything
-
+#
 # It assumes a running configuration of a DB and an LAP container
-
+#
 # The file area may be a volume or a directory.
-
+#
 # parameters:
 # 
 #  DB_USER    Database User          (may be standard such as user0023)
@@ -29,92 +33,187 @@ DB_CONTAINER=my-mysql
 
 
 ##
-## Initialization function for WIKIs
 ##
-initialize () {
-  DB_USER=$1
-  DB_PASS="password-$1"
-  WK_USER=$1
-  WK_PASS="password-$1"
-  echo "*** Initializing ${DB_USER}, ${DB_PASS}, ${WK_USER}, ${WK_PASS}"
+#
+#  We must adjust the global configuration file of composer and the loca configuration file of composer to permit the use of certain plugins.
+#  The list of these plugins we must get form error messages in the composer runs
+#
+composerPermissions () {
+  echo ""
+  echo "** Configuring permissions for composer"
 
-  # path to the wiki inside of the volume
-  VOLUME_PATH="wiki-${DB_USER}"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer config --no-plugins allow-plugins.wikimedia/composer-merge-plugin true       "
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer config --no-plugins allow-plugins.composer/package-versions-deprecated true  "
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer config --no-plugins allow-plugins.composer/installers true  "  
 
-  echo "** Are we a wiki directory?"
-  docker exec ${LAP_CONTAINER} ls ${MOUNT}/${VOLUME_PATH}/index.php
-  if [ "$?" == "0" ]; then
-    echo "* Found index.php, probably yes, continuing"
-  else 
-    echo "* NO *** EXITING initializer for ${VOLUME_PATH}"
-    return
-  fi
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=${MOUNT}/${VOLUME_PATH}/composer.local.json composer config --no-plugins allow-plugins.wikimedia/composer-merge-plugin true       "
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=${MOUNT}/${VOLUME_PATH}/composer.local.json composer config --no-plugins allow-plugins.composer/package-versions-deprecated true  "
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=${MOUNT}/${VOLUME_PATH}/composer.local.json composer config --no-plugins allow-plugins.composer/installers true  "  
 
-
-###### TODO: we might be DB-iniztialized and lack LocalSettings.php and vice versa. Halfinitialized. ho do we do thois ?????
+  echo "DONE configuring permissions for composer"
+  echo ""
+}
 
 
-  echo "** Are we already initialized? "
-  docker exec ${LAP_CONTAINER} ls ${MOUNT}/${VOLUME_PATH}/LocalSettings.php
-  if [ "$?" == "0" ]; then
-    echo "* Found LocalSettings.php in ${VOLUME_PATH} - already initialized *** EXITING initializer for ${VOLUME_PATH}"
-    return
-  else 
-    echo "* Did not find LocalSettings.php, continuing"
-  fi
+
+composerUpdate () {
+  echo ""
+  echo "*** Do a composer update on the global file"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer update"
+  echo ""
+
+  echo ""
+  echo "*** Do a composer update on the local file"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=composer.local.json composer update --no-dev -o  --no-interaction "
+  echo "DONE with local composer update"
+  echo ""
+}
+
+#  installExtensionithub  https://github.com/kuenzign/WikiMarkdown  WikiMarkdown  main
+installExtensionGithub () {
+  URL=$1
+  NAME=$2
+  BRANCH=$3
+  echo ""; echo "*** INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}"
+  docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions ${LAP_CONTAINER}   sh -c " git clone ${URL} --branch ${BRANCH} ${NAME} "
+  docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions/${NAME} ${LAP_CONTAINER}  sh -c "rm -Rf .git "
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "echo \"wfLoadExtension( 'WikiMarkdown' );\" >> DanteDynamicInstalls.php "
+echo ""; echo "*** COMPLETED INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}"
+}
+
+
+installExtensionGerrit () {
+  NAME=$1
+  RELEASE=$2
+  docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions ${LAP_CONTAINER}   sh -c " git clone https://gerrit.wikimedia.org/r/mediawiki/extensions/${NAME} --branch ${RELEASE} ${NAME} "
+  docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions/${NAME} sh -c "rm -Rf .git "
+}
+
+
+##
+##
+#
+# region
+composer () {
+
+  echo "______________________________________________"
+  echo "*** Doing COMPOSER based installations "
+  echo ""
+
+  # ensure we start with a clean DanteDynamicInstalls.php file"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "rm -f DanteDynamicInstalls.php "
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c " echo \"<?php \" >> DanteDynamicInstalls.php "
+
+
+
+## the following is braindamaged composer construction
+## to find out, we must
+## 1) run the below composer install commands interactively in a shell
+## 2) wait for security confirmations and answer yes
+## 3) look at config.allow-plugins in the composer.json file, which gets modified in consequence of this
+## 4) add the elements added to composer.json into this shell file
+
+  composerPermissions
+
+# TODO: do we need to make this ourselves ??? really
+# TODO: do we need to configure permissions locally AND globally ??? as above
+# TODO: do we really need that --no-interaction here ??
+# TODO: do we really need to mka ethe directory for bootstrap ourselves ??
+# TODO:
+# The skins autoregister in the installation routine, however Bootstrap does not. But then, Bootstrap must be loaded before some skins.
+# Therefore we must FIRST do the installation THEN install Bootstrap and inject that into the settings and only then install the skins and inject them (as they will now no longer autoregister)
+
+  # INSTALLING extensions
+  echo "*** Installing some extension requirements"
+
+  # Install markdown parser https://github.com/erusev/parsedown
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=composer.local.json  composer require erusev/parsedown"
+
+  # Install markdown-extra https://michelf.ca/projects/php-markdown/extra/
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=composer.local.json  composer require erusev/parsedown-extra"
+
+  # Install markdown-extended https://github.com/BenjaminHoegh/ParsedownExtended
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=composer.local.json  composer require benjaminhoegh/parsedown-extended"
+
+  installExtensionGithub  https://github.com/kuenzign/WikiMarkdown  WikiMarkdown  main
+
+### currently to be done manually 
+###  installExtensionGithub  https://github.com/clecap/Parsifal  Parsifal  dante
+
+
+  echo "DONE installing extensions"
+  echo ""
+
+
+  echo ""
+  echo "*** Do a composer update on the global file"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer update"
+  echo "DONE with final composer update"
+  echo ""
+
+}
+# endregion
+
+
+
+## addDatabase:  add a username and a database to the database engine
+# region
+#
+#
+#
+addDatabase () {
 
   DB_NAME="DB_${DB_USER}"
 
 ##
 ## Add Wiki to Database
 ##
-echo ________________
-echo "*** Making a database ${DB_NAME} with main user ${DB_USER} and password ${DB_PASS}: "
-echo ""
+  echo ________________
+  echo "*** Making a database ${DB_NAME} with main user ${DB_USER} and password ${DB_PASS}: "
+  echo ""
 
-# TODO: tighten up the permissions granted !!
+# TODO: Adapt the permissions granted to the specific environment and run-time conditions.
 docker exec -i ${DB_CONTAINER} mysql -u root --password=${MYSQL_ROOT_PASSWORD} <<MYSQLSTUFF
-CREATE DATABASE ${DB_NAME} /*\!40100 DEFAULT CHARACTER SET utf8 */;
-CREATE USER ${DB_USER}@'%' IDENTIFIED BY '${DB_PASS}';
-CREATE USER ${DB_USER}@localhost IDENTIFIED BY '${DB_PASS}';
-CREATE USER ${DB_USER}@'0.0.0.0/0.0.0.0' IDENTIFIED BY '${DB_PASS}';
+CREATE DATABASE IF NOT EXISTS ${DB_NAME} /*\!40100 DEFAULT CHARACTER SET utf8 */;
+CREATE USER IF NOT EXISTS ${DB_USER}@'%' IDENTIFIED BY '${DB_PASS}';
+CREATE USER IF NOT EXISTS ${DB_USER}@localhost IDENTIFIED BY '${DB_PASS}';
+-- CREATE USER IF NOT EXISTS ${DB_USER}@'0.0.0.0/0.0.0.0' IDENTIFIED BY '${DB_PASS}';
 GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';
 GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';
-GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'0.0.0.0/0.0.0.0';
-GRANT ALL ON *.* TO '${DB_USER}'@'%';
-GRANT ALL ON *.* TO '${DB_USER}'@'localhost';
-GRANT ALL ON *.* TO '${DB_USER}'@'0.0.0.0/0.0.0.0';
+-- GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'0.0.0.0/0.0.0.0';
 FLUSH PRIVILEGES;
 MYSQLSTUFF
 
 EXIT_CODE=$?
-echo "*   Exit code ${EXIT_CODE}"
-echo "DONE"
+echo "* DONE: Exit code of database call: ${EXIT_CODE}"
 ##
 
+}
+# endregion
 
-##
-## Mediawiki Installation Script
-##
 
-MEDIAWIKI_DB_HOST=my-mysql
-MEDIAWIKI_DB_TYPE=mysql
-MEDIAWIKI_DB_NAME=${DB_NAME}
-MEDIAWIKI_DB_PORT=3306
-MEDIAWIKI_DB_USER=${DB_USER}
-MEDIAWIKI_DB_PASSWORD=${DB_PASS}
-MEDIAWIKI_RUN_UPDATE_SCRIPT=true
+## runMWInstallScript: run the mediawiki install script and generate a LocalSettings.php
+# region
+runMWInstallScript () {
 
-MEDIAWIKI_SITE_NAME="Dummy Site Name"
-# MEDIAWIKI_SITE_SERVER="http://${LAP_CONTAINER}:80"
-# TODO: problem: LAP_CONTAINER name is not resolved in the docker host
-MEDIAWIKI_SITE_SERVER="http://localhost:80"
-MEDIAWIKI_SCRIPT_PATH="/${VOLUME_PATH}"
-# TODO: make language variable inputable into script 
-MEDIAWIKI_SITE_LANG=en
-MEDIAWIKI_ADMIN_USER=${WK_USER}
-MEDIAWIKI_ADMIN_PASS=${WK_PASS}
-MEDIAWIKI_ENABLE_SSL=false
+  MEDIAWIKI_DB_HOST=my-mysql
+  MEDIAWIKI_DB_TYPE=mysql
+  MEDIAWIKI_DB_NAME=${DB_NAME}
+  MEDIAWIKI_DB_PORT=3306
+  MEDIAWIKI_DB_USER=${DB_USER}
+  MEDIAWIKI_DB_PASSWORD=${DB_PASS}
+  MEDIAWIKI_RUN_UPDATE_SCRIPT=true
+
+  MEDIAWIKI_SITE_NAME="Dummy Site Name"
+  # MEDIAWIKI_SITE_SERVER="https://${LAP_CONTAINER}"
+  # TODO: problem: LAP_CONTAINER name is not resolved in the docker host
+  MEDIAWIKI_SITE_SERVER="https://localhost"
+  MEDIAWIKI_SCRIPT_PATH="/${VOLUME_PATH}"
+  # TODO: make language variable inputable into script 
+  MEDIAWIKI_SITE_LANG=en
+  MEDIAWIKI_ADMIN_USER=${WK_USER}
+  MEDIAWIKI_ADMIN_PASS=${WK_PASS}
+  MEDIAWIKI_ENABLE_SSL=true
 
 ### export MEDIAWIKI_DB_TYPE MEDIAWIKI_DB_HOST MEDIAWIKI_DB_USER MEDIAWIKI_DB_PASSWORD MEDIAWIKI_DB_NAME
 
@@ -160,15 +259,114 @@ docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} php maintenance/install
     "$MEDIAWIKI_SITE_NAME" \
     "$MEDIAWIKI_ADMIN_USER"
 
-echo ""
-echo "DONE"
-echo ""
+
+  echo "_______________________________________"
+  echo ""
+
+docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}  [ -f "${MOUNT}/${VOLUME_PATH}/LocalSettings.php" ]
+EXIT_VALUE=$?
+echo "shell result $EXIT_VALUE"
+if [ "$EXIT_VALUE" == "0" ]; then
+  printf "\e[1;31m* SUCCESS:  ${MOUNT}/${VOLUME_PATH}/LocalSettings.php  generated \e[0m"
+else
+  printf "\e[1;41m* ERROR:  Could not generate ${MOUNT}/${VOLUME_PATH}/LocalSettings.php - *** ABORTING \e[0m \n"
+fi
 
 
+
+
+}
+# endregion
+
+
+## addingReferenceToDante:  Injects into LocalSettings.php a line loading our own configuration for Dante
+# region
+addingReferenceToDante () {
+
+  echo ""
+  echo "*** Adding reference to DanteSettings.php"
+
+# NOTE: Doing this with include does not produce an error if the file goes missing
+
+  docker exec -w /${MOUNT}/${VOLUME_PATH}  ${LAP_CONTAINER}   sh -c "echo ' ' >> LocalSettings.php"
+  docker exec -w /${MOUNT}/${VOLUME_PATH}   ${LAP_CONTAINER}  sh -c " echo '###' >> LocalSettings.php"
+  docker exec -w /${MOUNT}/${VOLUME_PATH}   ${LAP_CONTAINER}  sh -c "echo '### Automagically injected by volume cmd.sh ' >> LocalSettings.php"
+  docker exec -w /${MOUNT}/${VOLUME_PATH}   ${LAP_CONTAINER}  sh -c "echo '###' >> LocalSettings.php  "
+  docker exec -w /${MOUNT}/${VOLUME_PATH}   ${LAP_CONTAINER}  sh -c "echo 'include (\"DanteSettings.php\"); ' >> LocalSettings.php "
+  echo "DONE adding a reference to DanteSettings.php"
+  echo ""
+}
+# endregion
+
+
+## patchingForChameleon: Chameleon skin patch
+# region
+# Chameleon skin is autodetected in the install script, but extensions are not autodetected. However, chameleon
+# requires the Bootstrap extension. Thus, in case we have chameleon autodetected we must pathc in loading Bootstrap
+# beforehand, or the automagic install process does not run through.
+# This patching must be done IF chameleon is installed and it must be done after the wiki installer produced LocalSettings.php
+patchingForChameleon () {
+
+#  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sed -i "s/wfLoadSkin( 'chameleon' );/wfLoadExtension( 'Bootstrap' ); wfLoadSkin( 'chameleon' ); ### patched by dante installer in wiki-init.sh /g" ${MOUNT}/${VOLUME_PATH}/LocalSettings.php
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "sed \"s/wfLoadSkin( 'chameleon' );/wfLoadExtension( 'Bootstrap' ); wfLoadSkin( 'chameleon' ); ### patched by dante installer in wiki-init.sh /g\" LocalSettings.php > NEWLocalSettings.php"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "cp ${MOUNT}/${VOLUME_PATH}/NEWLocalSettings.php ${MOUNT}/${VOLUME_PATH}/LocalSettings.php"
+
+
+
+}
+# endregion
+
+
+
+
+##
+## Initialization function for an individual WIKI
+##
+initialize () {
+  DB_USER=$1
+  DB_PASS="password-$1"
+  WK_USER=$1
+  WK_PASS="password-$1"
+  echo "*** Initializing ${DB_USER}, ${DB_PASS}, ${WK_USER}, ${WK_PASS}"
+
+  # path to the wiki inside of the volume
+  VOLUME_PATH="wiki-${DB_USER}"
+
+  echo "** Are we a wiki directory?"
+  docker exec ${LAP_CONTAINER} ls ${MOUNT}/${VOLUME_PATH}/index.php
+  if [ "$?" == "0" ]; then
+    echo "* Found index.php, probably yes, continuing"
+  else 
+    echo "* NO *** EXITING initializer for ${VOLUME_PATH}"
+    return
+  fi
+  echo ""
+
+  addDatabase
+
+  # composer must run before the installscript so that the installscript has all extensions ready
+  composer 
+
+ ## remove to have a clean start for the install routines
+  docker exec ${LAP_CONTAINER} rm ${MOUNT}/${VOLUME_PATH}/LocalSettings.php
+
+  runMWInstallScript
+
+  patchingForChameleon
+
+  addingReferenceToDante
+
+  echo ""
+  echo "DONE   *** INITIALIZING WIKI *** "
+  echo ""
 }
 ##
 ## END of initialization function
 ##
+
+
+
+
 
 
 
@@ -189,6 +387,7 @@ do
   echo "*** Initializing WIKI: ${WIKI}"
   if [[ $WIKI =~ wiki-([a-zA-Z0-9_]+)$ ]]; 
   then 
+
     initialize ${BASH_REMATCH[1]}
   else 
     echo "*** Skipping ${WIKI} as it is not in proper format"; 
@@ -201,19 +400,6 @@ exit
 
 
 
-
-
-
-
-
-# If we have a mounted share volume, move the LocalSettings.php to it
-# so it can be restored if this container needs to be reinitiated
-#    if [ -d "$MEDIAWIKI_SHARED" ]; then
-#      # Move generated LocalSettings.php to share volume
-#      mv LocalSettings.php "$MEDIAWIKI_SHARED/LocalSettings.php"
-#      ln -s "$MEDIAWIKI_SHARED/LocalSettings.php" LocalSettings.php
-#    fi
-
 #### THIS probably partially into dockerfile
 # If a composer.lock and composer.json file exist, use them to install dependencies for MediaWiki and desired extensions, skins, etc.
 #if [ -e "$MEDIAWIKI_SHARED/composer.lock" -a -e "$MEDIAWIKI_SHARED/composer.json" ]; then
@@ -224,10 +410,6 @@ exit
 #fi
 
 # maybe restart the apache ?!?
-
-
-
-
 
 
 ## route 53 stuff fehlt noch  #TODO: stuff in jedem fall auch wenn lokal und intern usw.

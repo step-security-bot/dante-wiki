@@ -13,3 +13,7 @@ The name my-mysql is used since the name mysql already has a meaning in dockerhu
 
 `run.sh `    run a mysql container
 
+
+`dbDump.sh` writes a dump of the entire database to TOPLEVEL/dumps/
+
+`dbRestore.sh` restores a dump from TOPLEVEL/dumps

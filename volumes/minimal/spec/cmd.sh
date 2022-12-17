@@ -25,6 +25,12 @@ docker exec -w /${MOUNT}/${VOLUME_PATH} ${TEMP} rm ./${WIKI_NAME}.tar.gz
 docker exec -w /${MOUNT}/${VOLUME_PATH} ${TEMP} mv ${WIKI_NAME}/*.* /${MOUNT}/${VOLUME_PATH}
 
 
+
+##
+## Install Dantewiki difference
+##
+#docker exec -w /${MOUNT}/${VOLUME_PATH} git clone "https://github.com/clecap/dante-delta.git" 
+
 ##### define the extensions we want to use and the specific branches we will use of them and load them
 # Install Mediawiki extensions (ADD LATER or rather do it via a COPY below)
 #  git clone "https://gerrit.wikimedia.org/r/mediawiki/skins/MinervaNeue" skins/MinervaNeue; \

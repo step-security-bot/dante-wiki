@@ -1,4 +1,4 @@
-## This is the main mysql configuration file for /etc/my.cnf
+## This is the main mysql configuration file for /etc/my.cnf developed for dante / Parsifal 
 
 # for client and server
 [client-server]
@@ -15,31 +15,11 @@ symbolic-links=0
 # this is only for the mysqld standalone daemon
 [mysqld]
 
-
 port = 3306
 
 user = mysql
 datadir = /var/mysql/mysql
 log-bin = /var/mysql/log/bin-log
-
-
-# Setting for the galera multi replica cluster
-[galera]
-# Mandatory settings
-#wsrep_on=ON
-#wsrep_provider=
-#wsrep_cluster_address=
-#binlog_format=row
-#default_storage_engine=InnoDB
-#innodb_autoinc_lock_mode=2
-#
-# Allow server to accept connections on all interfaces.
-#
-#bind-address=0.0.0.0
-#
-# Optional setting
-#wsrep_slave_threads=1
-#innodb_flush_log_at_trx_commit=0
 
 
 

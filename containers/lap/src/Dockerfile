@@ -1,8 +1,8 @@
-# Using alpine, as this is the smallest Linux installation for docker available.
-# Using a fixed number instead of latest in the interest of a reproducible build.
 FROM alpine:3.15
 
-# PHP_INI_DIR to be symmetrical with official php docker image  TODO: needed ??
+LABEL "vendor"="Clemens H. Cap"
+LABEL "maintainer"="clemens.cap@uni-rostock.de"
+
 ENV PHP_INI_DIR /etc/php/7.4
 
 RUN apk update;   \
@@ -10,8 +10,7 @@ RUN apk update;   \
 #   *** PHP    
     apk --no-cache add php7; \
 #   *** PHP extensions as required for Mediawiki       
-    apk --no-cache add php7-session php7-openssl php7-json  php7-mbstring  php7-fileinfo php7-intl php7-calendar php7-ctype php7-xml php7-xmlreader;\
-    apk --no-cache add php7-curl; \
+    apk --no-cache add php7-session php7-openssl php7-json  php7-mbstring  php7-fileinfo php7-intl php7-calendar php7-ctype php7-xml php7-xmlreader php7-xmlwriter php7-simplexml php7-curl; \
 #   *** Some more PHP extensions as they may seem useful
     apk --no-cache add  php7-bcmath php7-exif php7-ftp php7-dom php7-tokenizer php7-posix php7-iconv; \
 #   MYSQL integration for php
@@ -20,6 +19,8 @@ RUN apk update;   \
     apk --no-cache add php7-apcu php7-igbinary php7-opcache;\
 #   APACHE integration for php
     apk --no-cache add php7-fpm; \
+#   php phar is needed for composer, further down
+    apk --no-cache add php-phar; \
 #   PEAR will temporarily need a c compiler and a make utility
     apk --no-cache add g++ make; \
 #   * PHP UTILITIES:  pear and pecl are needed for installing the DS data type, which we need in Parsifal for cleaning up
@@ -34,31 +35,29 @@ RUN apk update;   \
     apk --no-cache add ca-certificates;\ 
 #   Needed for syntax highlighting mechanisms    
     apk --no-cache add python3; \
+#   Mediawiki needs php dependency tool composer
+#   this is a bit tricky and only this helped: https://stackoverflow.com/questions/51443557/how-to-install-php-composer-inside-a-docker-container
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer; \
 #   * APACHE
     apk --no-cache add apache2; \
+#   requirement for http2
+    apk --no-cache add nghttp2-libs apache2-http2; \
 #   * APACHE MODULES     
-    apk --no-cache add nghttp2 apache2-proxy;\
+    apk --no-cache add nghttp2 apache2-proxy apache2-ssl;\
 #   * diff utils needed for text differences
     apk --no-cache add diffutils; \
 #   git needed to get proper hashes in Special:Version and in other places
     apk --no-cache add git;\         
 #   THUMBNAIL support in mediawiki
     apk --no-cache add imagemagick php7-gd ; \
-#   DJVU support in mediawiki                                     TODO: Looks like these things are still missing here
-#    apk --no-cache add djvulibre-bin netpbm ; \       
+#   DJVU support in mediawiki
+    apk --no-cache add djvulibre; \
+#   netpbm support in mediawiki
+    apk --no-cache netpbm ; \       
 #   No xpdf in Alpine - using poppler-utils as replacement
     apk --no-cache add poppler-utils; \
 #   SVG support in mediawiki
-    apk --no-cache add librsvg
-
-## NOTE: We move some of the files which might change once in a while to the end of the docker file
-#        as this allows the build system to cache the earlier (time consuming) layers f the build process
-
-
-##
-## APACHE / PHP configuration
-##
-RUN  echo " CONFIGURE APACHE ";                     \
+    apk --no-cache add librsvg; \
 #   /run/apache2 is pid directory for apache
     mkdir -p /run/apache2;                          \
 #   /var/www/html is the html mount point
@@ -67,55 +66,15 @@ RUN  echo " CONFIGURE APACHE ";                     \
     rm -Rf /var/www/localhost
 
 
-COPY httpd.conf                             /etc/apache2/httpd.conf
-
-COPY mediawiki-alpine-lamp-apache2.conf     /etc/apache2/conf.d
-COPY mediawiki-alpine-lamp-php.ini          /etc/php7/php-fpm.d/mediawiki-alpine-lamp-php.ini
-##
-## END: Apache / PHP configuration
-##
-
-##
-## COPY in the entrypoint script
-##
-COPY entrypoint.sh /
+COPY httpd.conf                              /etc/apache2/httpd.conf
+COPY mediawiki-alpine-lamp-apache2.conf      /etc/apache2/conf.d
+COPY mediawiki-alpine-lamp-php.ini           /etc/php7/mediawiki-alpine-lamp-php.ini
+COPY ssl.conf                                /etc/apache2/conf.d/ssl.conf
+COPY localhost-key.pem                       /etc/ssl/apache2/server.key
+COPY localhost.pem                           /etc/ssl/apache2/server.pem
+COPY entrypoint.sh                           /
 
 
-
-
-
-
-######
-###### DEBUG BLOCK: INCLUDE AN INSTANCE OF SSH
-######
-#   Install openssh
-RUN apk add --no-cache openssh;                                     \
-#   Add user cap, pass for entry (***** INSECURE *****)  TODO: Fix this 
-    echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config ;     \
-    adduser -h /home/cap -s /bin/sh -D cap   ;                      \
-    echo -n 'cap:pass' | chpasswd ;                                 \
-# Make user cap a sudo user
-    adduser -D cap;                                                 \
-    mkdir -p /etc/sudoers.d ;                                       \
-    echo "cap ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/cap ;       \
-    chmod 0440 /etc/sudoers.d/cap ;                                 \
-#    mkdir ~cap/.ssh ;                                               \
-# Install sudo, which is not part of alpine - allows to do a sudo su for gaining root
-    apk add --no-cache sudo
-
-#COPY id_rsa.pub /tmp/id_rsa.pub                              
-#RUN cat /tmp/id_rsa.pub >> ~/.ssh/authorized_keys;  \
-#    rm -f /tmp/id_rsa.pub
-# Expose for ssh
-EXPOSE 22
-######
-###### END DEBUG BLOCK
-######
-
-
-## CLEAN UP
-RUN apk del g++ make php7-dev; \ 
-    rm -rf /var/cache/apk/*       
 
 # Expose for http and https
 EXPOSE 80

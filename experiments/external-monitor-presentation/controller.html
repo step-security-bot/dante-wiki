@@ -1,0 +1,93 @@
+<html>
+<head></head>
+  
+<body>
+  <button id="start">start</button>
+  
+  <button id="send">send</button>
+  <button id="terminate">terminate</button>
+  <button id="close">close</button>
+  <button id="start">start</button>      
+  
+<script>
+
+
+const presentationRequest = new PresentationRequest(['https://blog.fefe.de']);
+
+console.log (presentationRequest);
+
+// Make this presentation the default one when using the "Cast" browser menu.
+navigator.presentation.defaultRequest = presentationRequest;
+
+let presentationConnection;
+
+
+function startPresentation () {
+  presentationRequest.start()
+    .then  ( connection => { console.log (' Connected to ' + connection.url + ', id: ' + connection.id, connection); })
+    .catch ( error      => { console.log ( error ); });
+}
+
+document.querySelector('#start').addEventListener('click', startPresentation );
+
+presentationRequest.addEventListener('connectionavailable', function(event) {
+  
+  presentationConnection = event.connection;
+  
+  presentationConnection.addEventListener('close',      (event) => { console.log("presentationConnection  closed", event);}     );
+  presentationConnection.addEventListener('connect',    (event) => { console.log("presentationConnection connected ", event);}     );  
+  presentationConnection.addEventListener('message',    (event) => { console.log("presentationConnection message received ", event.data, event);}      );
+  presentationConnection.addEventListener('terminate',  (event) => { console.log("presentationConnection terminated", event);}  );
+});
+
+
+function closePC () { console.log ("closing presentation connection"); presentationConnection.close();}
+
+function terminatePC () { console.log ("terminating presentation connection"); presentationConnection.terminate();}
+
+function sendPC () { var x = "test"; presentationConnection.send(x); }
+
+
+document.querySelector('#close').addEventListener('click', closePC);
+
+document.querySelector('#terminate').addEventListener('click', terminatePC);
+
+document.querySelector('#terminate').addEventListener('click', sendPC);
+
+
+/*
+document.querySelector('#reconnect').addEventListener('click', () => {
+  const presentationId = document.querySelector('#presentationId').value.trim();
+
+  presentationRequest.reconnect(presentationId)
+  .then(connection => {
+    log('Reconnected to ' + connection.id);
+  })
+  .catch(error => {
+    log('Presentation.reconnect() error, ' + error.name + ': ' + error.message);
+  });
+});
+
+*/
+
+
+/* Availability monitoring */
+
+presentationRequest.getAvailability()
+  .then(availability => {
+    console.log('Available presentation displays: ' + availability.value);
+    
+    availability.addEventListener('change', function() {console.log('> Available presentation displays: ' + availability.value);});
+    })
+  .catch(error => {console.log('Presentation availability not supported, ' + error.name + ': ' + error.message);
+});
+
+
+</script>
+
+  
+  
+  
+</body>
+</html>
+

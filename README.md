@@ -22,6 +22,9 @@ This is a **boiler plate project** to automate **launching docker** images and v
 * Setting up an **EFS Elastic Filesystem**
 * Uploading files to an **EFS Elastic FIlesystem**
 * Allow ssh entry to the server for manual checks and maintenance.
+* Provides **https** settings
+* Does a **http to https redirect**
+* **http2** support
 
 
 ## It does not (yet) ##
@@ -32,10 +35,13 @@ This is a **boiler plate project** to automate **launching docker** images and v
 * Running some elementary service tests
 * Backup the elastic file system
 * Encryption at rest
-* Encryption in transport
+* Encryption in transport - enforce that Mysql is accepting only encrypted connections and that webserver uses them as well. https://dev.mysql.com/doc/refman/5.7/en/using-encrypted-connections.html
 * Startup only on demand, see https://aws.plainenglish.io/how-on-demand-provisioning-your-ecs-serverless-apps-can-save-you-money-fdfaee3ef2f
 * Proper handling of container secrets as described in https://stackoverflow.com/questions/71704931/set-aws-secret-manager-value-in-docker-environment
 ** Maybe easier and better not to depend on aws too much - before we go into production with a container we ssh into the container and make the changes manually ------ but this is not so efficient ?!?!? - ?!?!?!ß
+* Take care of all mediawiki security issues mentioned in https://www.mediawiki.org/wiki/Manual:Security
+* Implement mysql dumps
+* Implement mysql dumps properly as in https://serverfault.com/questions/231300/mysqldump-with-single-transaction-option-on-live-production-servers?rq=1
 
 A more detailed description can be found in the
 [Wiki](https://github.com/clecap/continuous-deployment-test/wiki).

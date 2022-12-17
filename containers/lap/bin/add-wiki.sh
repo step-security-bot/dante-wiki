@@ -1,5 +1,19 @@
 #!/bin/bash
 
+
+
+
+
+
+
+
+
+
+
+######## DEPRECATE THIS - should should probably be moved to wiki-init.sh in volumes or similar.
+### BUT: NEED a way to dynamically add a wiki  # TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 # adds a wiki installation to a running configuration of a DB and an LAP container
 
 # adjusts the localsettings and more, initializes the db, installs the wiki and stuff
