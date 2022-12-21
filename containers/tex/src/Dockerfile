@@ -72,18 +72,12 @@ RUN apk --no-cache update;              \
     rm -Rf /tmp/* 
 
 
-# Finally, prepend /usr/local/texlive/YYYY/bin/PLATFORM to your PATH,
-# e.g., /usr/local/texlive/2022/bin/x86_64-linux
-
+# we derive this image from ssh, so we do not need any entrypoint
+#
 # copy in a local file as entry point
 # COPY entrypoint.sh /
-
 # ENTRYPOINT ["/entrypoint.sh"]
+#
+# ENTRYPOINT ["/bin/sh","-c","sleep infinity"]
 
 EXPOSE 22
-# EXPOSE 80
-# EXPOSE 443
-
-
-
-
