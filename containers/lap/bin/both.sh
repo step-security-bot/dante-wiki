@@ -4,6 +4,9 @@
 # the db container  is run on a given docker volume or on default    DB_VOLUME_NAME 
 # the lap container is run on a LOCAL_DIRECTORY or on a pre-prepared LAP_VOLUME_NAME
 
+# we may add an optional dump container to the data base container
+# we may add an optional dump container to the lap container
+
 usage() {
   echo "Usage: $0 --db DB_VOLUME_NAME  --dir DIR_NAME           (files from local directory)       "
   echo "  --db DB_VOLUME_NAME       (if missing: default)   "
