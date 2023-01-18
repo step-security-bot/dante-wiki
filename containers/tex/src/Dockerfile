@@ -66,10 +66,12 @@ RUN apk --no-cache update;              \
     echo "tlpdbopt_sys_bin /usr/bin" >> install.profile && \
     # actually install TeX Live
     ./install-tl -profile install.profile  && \
+    # Texlive specific cleanup
+    rm -Rf /usr/local/texlive/2022/texmf-dist/doc && \
     # cleanup
     cd /tmp && \
     rm -Rf /tmp/* ; \
-    rm /var/cache/apk/*
+    rm -Rf /var/cache/apk/*
 
 # There is already an entrypoint in the base image ssh
 # ENTRYPOINT ["/bin/sh","-c","sleep infinity"]
