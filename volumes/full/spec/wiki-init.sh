@@ -1,16 +1,17 @@
 #!/bin/bash
 
-#### THIS does not dynamically add a wiki but parses the directories which are present in the volume !!!!!
 
-##### TODO: must make this more dynamic (it actually SHOULD parse the directories but currently does not yet)
+# This is a set of library functions for the dynamical parts of initializing a wiki system
 
-# This is an idempotent script which initializes a wiki installation existing on a directory of volume
-# If the wiki is already installed, it does not break anything
-#
-# It assumes a running configuration of a DB and an LAP container
+# ASSUMPTIONS:  A running configuration with a DB and an LAP container
 #
 # The file area may be a volume or a directory.
 #
+
+
+
+
+
 # parameters:
 # 
 #  DB_USER    Database User          (may be standard such as user0023)
@@ -19,21 +20,22 @@
 #  WK_PASS    Wiki Admin Password
 #
 
+# region  DEFINING certain global constants
 
 # mount point of the volume or directory
 MOUNT="/var/www/html"
 
-# get directory where this script resides wherever it is called from
+# get directory where this script resides, wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Names of the containers which we assume are running
 LAP_CONTAINER=my-lap-container
 DB_CONTAINER=my-mysql
 
+# endregion
 
 
-##
-##
+# region  composerPermissions ()  
 #
 #  We must adjust the global configuration file of composer and the loca configuration file of composer to permit the use of certain plugins.
 #  The list of these plugins we must get form error messages in the composer runs
@@ -53,13 +55,14 @@ composerPermissions () {
   echo "DONE configuring permissions for composer"
   echo ""
 }
+# endregion
 
 
 
 composerUpdate () {
   echo ""
   echo "*** Do a composer update on the global file"
-  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer update"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer update --no-dev -o  --no-interaction "
   echo ""
 
   echo ""
@@ -69,31 +72,35 @@ composerUpdate () {
   echo ""
 }
 
-#  installExtensionithub  https://github.com/kuenzign/WikiMarkdown  WikiMarkdown  main
+# region installExtensionGithub ()   
+# INSTALL an extension which is hosted on github
+# EXAMPLE:   installExtensionGithub  https://github.com/kuenzign/WikiMarkdown  WikiMarkdown  main
 installExtensionGithub () {
   URL=$1
   NAME=$2
   BRANCH=$3
   echo ""; echo "*** INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}"
-  docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions ${LAP_CONTAINER}   sh -c " git clone ${URL} --branch ${BRANCH} ${NAME} "
+  docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions ${LAP_CONTAINER}          sh -c " git clone ${URL} --branch ${BRANCH} ${NAME} "
   docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions/${NAME} ${LAP_CONTAINER}  sh -c "rm -Rf .git "
-  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "echo \"wfLoadExtension( 'WikiMarkdown' );\" >> DanteDynamicInstalls.php "
-echo ""; echo "*** COMPLETED INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "echo \"wfLoadExtension( '${NAME}' );\" >> DanteDynamicInstalls.php "
+  echo ""; echo "*** COMPLETED INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}"
 }
+# endregion
 
-
+# region installExtensionGerrit ()   
+# INSTALL an extension which is hosted on gerrit
 installExtensionGerrit () {
   NAME=$1
   RELEASE=$2
   docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions ${LAP_CONTAINER}   sh -c " git clone https://gerrit.wikimedia.org/r/mediawiki/extensions/${NAME} --branch ${RELEASE} ${NAME} "
   docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions/${NAME} sh -c "rm -Rf .git "
 }
+# endregion
 
 
+# region  composer:  Doing COMPOSER based installations
 ##
 ##
-#
-# region
 composer () {
 
   echo "______________________________________________"
@@ -137,6 +144,10 @@ composer () {
 
   installExtensionGithub  https://github.com/kuenzign/WikiMarkdown  WikiMarkdown  main
 
+  installExtensionGithub  https://github.com/wikimedia/mediawiki-extensions-MobileFrontend  MobileFrontend REL1_38
+
+
+
 ### currently to be done manually 
 ###  installExtensionGithub  https://github.com/clecap/Parsifal  Parsifal  dante
 
@@ -156,10 +167,7 @@ composer () {
 
 
 
-## addDatabase:  add a username and a database to the database engine
-# region
-#
-#
+# region  addDatabase:  add a username and a database to the database engine
 #
 addDatabase () {
 
@@ -192,10 +200,9 @@ echo "* DONE: Exit code of database call: ${EXIT_CODE}"
 # endregion
 
 
-## runMWInstallScript: run the mediawiki install script and generate a LocalSettings.php
-# region
+# region runMWInstallScript ()   run the mediawiki install script and generate a LocalSettings.php
+#
 runMWInstallScript () {
-
   MEDIAWIKI_DB_HOST=my-mysql
   MEDIAWIKI_DB_TYPE=mysql
   MEDIAWIKI_DB_NAME=${DB_NAME}
@@ -207,15 +214,14 @@ runMWInstallScript () {
   MEDIAWIKI_SITE_NAME="Dummy Site Name"
   # MEDIAWIKI_SITE_SERVER="https://${LAP_CONTAINER}"
   # TODO: problem: LAP_CONTAINER name is not resolved in the docker host
-  MEDIAWIKI_SITE_SERVER="https://localhost"
+################################################################# TODO: ADJUST 
+  MEDIAWIKI_SITE_SERVER="https://192.168.2.37"
   MEDIAWIKI_SCRIPT_PATH="/${VOLUME_PATH}"
   # TODO: make language variable inputable into script 
   MEDIAWIKI_SITE_LANG=en
   MEDIAWIKI_ADMIN_USER=${WK_USER}
   MEDIAWIKI_ADMIN_PASS=${WK_PASS}
   MEDIAWIKI_ENABLE_SSL=true
-
-### export MEDIAWIKI_DB_TYPE MEDIAWIKI_DB_HOST MEDIAWIKI_DB_USER MEDIAWIKI_DB_PASSWORD MEDIAWIKI_DB_NAME
 
 echo ________________
 echo "*** MEDIAWIKI INSTALLATION PARAMETERS WILL BE: "
@@ -263,6 +269,7 @@ docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} php maintenance/install
   echo "_______________________________________"
   echo ""
 
+# check if we succeeded to generate LocalSettings.php
 docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}  [ -f "${MOUNT}/${VOLUME_PATH}/LocalSettings.php" ]
 EXIT_VALUE=$?
 echo "shell result $EXIT_VALUE"
@@ -271,9 +278,6 @@ if [ "$EXIT_VALUE" == "0" ]; then
 else
   printf "\e[1;41m* ERROR:  Could not generate ${MOUNT}/${VOLUME_PATH}/LocalSettings.php - *** ABORTING \e[0m \n"
 fi
-
-
-
 
 }
 # endregion
@@ -299,8 +303,7 @@ addingReferenceToDante () {
 # endregion
 
 
-## patchingForChameleon: Chameleon skin patch
-# region
+# region patchingForChameleon: Chameleon skin patch
 # Chameleon skin is autodetected in the install script, but extensions are not autodetected. However, chameleon
 # requires the Bootstrap extension. Thus, in case we have chameleon autodetected we must pathc in loading Bootstrap
 # beforehand, or the automagic install process does not run through.
@@ -319,15 +322,15 @@ patchingForChameleon () {
 
 
 
-##
-## Initialization function for an individual WIKI
+# region  initialize    Initialization function for an individual WIKI
 ##
 initialize () {
   DB_USER=$1
   DB_PASS="password-$1"
   WK_USER=$1
   WK_PASS="password-$1"
-  echo "*** Initializing ${DB_USER}, ${DB_PASS}, ${WK_USER}, ${WK_PASS}"
+# TODO: must offer possibility to use a real password
+  echo "*** Initialize sees DB_USER=${DB_USER}, DB_PASS=${DB_PASS}, WK_USER=${WK_USER}, WK_PASS=${WK_PASS}"
 
   # path to the wiki inside of the volume
   VOLUME_PATH="wiki-${DB_USER}"
@@ -344,7 +347,8 @@ initialize () {
 
   addDatabase
 
-  # composer must run before the installscript so that the installscript has all extensions ready
+  # composer must run before the installscript so that the installscript has all the available extensions ready
+  # this is necessary, since the installscript does an autoregistration of some components, for example the installed skins
   composer 
 
  ## remove to have a clean start for the install routines
@@ -352,7 +356,8 @@ initialize () {
 
   runMWInstallScript
 
-  patchingForChameleon
+# we are not using Chameleon skin any longer due to some troubles we seem to have found with flash of unstyled stuff
+#  patchingForChameleon
 
   addingReferenceToDante
 
@@ -363,18 +368,15 @@ initialize () {
 ##
 ## END of initialization function
 ##
+# endregion
 
 
 
 
 
-
-
-
+# region main  MAIN function of the shell script
 ##
-## NOW comes the MAIN part of the shell script
-##
-
+main () {
 WIKIS="${DIR}/../content/wiki-"*
 
 echo ""
@@ -393,11 +395,11 @@ do
     echo "*** Skipping ${WIKI} as it is not in proper format"; 
   fi
 done
+}
+# endregion
 
 
-
-exit
-
+main 
 
 
 #### THIS probably partially into dockerfile
@@ -457,6 +459,7 @@ exit
 ##
 ## Add entry to /${MOUNT}/index.html
 ##
+addentry () {
 echo ""
 echo ________________
 echo ""
@@ -466,3 +469,4 @@ docker exec -w /${MOUNT} ${LAP_CONTAINER} touch ${MOUNT}/index.html
 docker exec ${LAP_CONTAINER} /bin/sh -c "echo \"<a href='/${VOLUME_PATH}/index.php'>${MOUNT}/${VOLUME_PATH}/index.php</a><br><br>\" >> ${MOUNT}/index.html"
 
 echo "...DONE"
+}
