@@ -17,8 +17,10 @@ RUN apk update;   \
     apk --no-cache add php7-mysqli;\
 #   *** apcu, igbinary and opcache as needed as suggested by mediawiki optimization    
     apk --no-cache add php7-apcu php7-igbinary php7-opcache;\
-#   APACHE integration for php
+#   APACHE PHP integration: VARIANT 1: php7-fpm (see README)
     apk --no-cache add php7-fpm; \
+#   APACHE PHP integration: VARIANT 2: php7-apache (see README)
+    apk --no-cache add php7-apache
 #   php phar is needed for composer, further down
     apk --no-cache add php-phar; \
 #   PEAR will temporarily need a c compiler and a make utility
@@ -63,8 +65,13 @@ RUN apk update;   \
 #   /var/www/html is the html mount point
     mkdir -p /var/www/html;                         \
 #   remove remaining alpine container mount point
-    rm -Rf /var/www/localhost
-
+    rm -Rf /var/www/localhost; \
+#   want access to aws client tools
+    apk --no-cache add aws-cli; \
+#   we want mysql client cli available to be able to make dumps and restores via webserver interaction and via mediawiki special pages
+    apk --no-cache add mysql-client; \
+#   cleanup
+    rm /var/cache/apk/*
 
 COPY httpd.conf                              /etc/apache2/httpd.conf
 COPY mediawiki-alpine-lamp-apache2.conf      /etc/apache2/conf.d
@@ -74,13 +81,11 @@ COPY localhost-key.pem                       /etc/ssl/apache2/server.key
 COPY localhost.pem                           /etc/ssl/apache2/server.pem
 COPY entrypoint.sh                           /
 
-
-
 # Expose for http and https
 EXPOSE 80
 EXPOSE 443
 
-# Expose for nfs 4  TODO: test if this really is necessary
-EXPOSE 2049
+# Expose for nfs 4  TODO: test if this really is necessary ???
+# EXPOSE 2049
 
 ENTRYPOINT ["/entrypoint.sh"]

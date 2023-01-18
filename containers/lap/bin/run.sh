@@ -12,6 +12,8 @@
 #     run.sh --vol NAME
 #
 
+IMAGE_NAME=tex
+## COULD be: lap    or    tex
 
 usage() {
   echo "Usage: $0 --dir DIR_NAME          - OR - "
@@ -43,8 +45,6 @@ else                      ### Variant 2: We were called with parameters.
        exit 1
   esac
 fi
-
-IMAGE_NAME=lap
 
 # mount starting point in the case when we are using a directory
 MOUNT_DIR=/var/www/html
@@ -97,7 +97,7 @@ echo ""
 
 echo "*** Creating LAP container and got id= " `
 docker run -d --name ${CONTAINER_NAME} \
-  -p 80:80 \
+  -p  80:80 \
   -p 443:443 \
   ${NET_SPEC} \
   ${VOL_SPEC} \

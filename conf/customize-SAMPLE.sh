@@ -1,7 +1,7 @@
 MYSQL_ROOT_PASSWORD=sample
 
 
-ehco ""
+echo ""
 echo "" PASSWORD PROBLEM
 echo "YOU DID NOT CONFIGURE THIS CORRECTLY - READ DOCU"
 echo ""

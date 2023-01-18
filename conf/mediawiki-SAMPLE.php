@@ -11,4 +11,11 @@ $wgSMTP = [
     'auth'     => true                           // shall authentisation be used
 ];
 
+
+
+
+
+
+
+
 ?>

@@ -7,4 +7,4 @@
 
 * Cleaning up inside of the SAME RUN command is essential. Compare: https://stackoverflow.com/questions/38597955/what-docker-image-size-is-considered-too-large
 
-* dockerfile VOLUME command since this works only on aws EC2 but not on Fargate
+* dockerfile VOLUME command may turn into a problem since this works only on aws EC2 but not on Fargate
