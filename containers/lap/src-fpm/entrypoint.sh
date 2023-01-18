@@ -37,10 +37,10 @@ echo "DONE with generating php.ini file"
 ##
 ## PHP-FPM7: Start PHP-FPM7
 ##
-#echo -n "** Starting php-fpm7 in background..."
-#/usr/sbin/php-fpm7 --php-ini /etc/php7/php-new.ini
-#echo "DONE with php-fpm7"
-#echo
+echo -n "** Starting php-fpm7 in background..."
+/usr/sbin/php-fpm7 --php-ini /etc/php7/php-new.ini
+echo "DONE with php-fpm7"
+echo
 ##
 ## END PHP-FPM7
 ##
