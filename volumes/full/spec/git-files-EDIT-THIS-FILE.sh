@@ -7,4 +7,5 @@
 
 declare -a MY_FILES=("DanteSettings.php")
 
-declare -a MY_DIRECTORIES=("extensions/DanteBread"   "extensions/DantePresentations"  "extensions/DanteSyntax"  "skins/skinny"  "skins/DantePresentationSkin")
+declare -a MY_DIRECTORIES=("extensions/DanteBread"   "extensions/DantePresentations"   "extensions/DanteBackup"  "extensions/DanteSyntax"  "skins/skinny"  "skins/DantePresentationSkin")
+add
