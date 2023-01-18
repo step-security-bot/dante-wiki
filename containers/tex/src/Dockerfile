@@ -1,6 +1,9 @@
 FROM ssh
 
 # We are starting with our own, small ssh on alpine image
+# We are not starting with an image containing a browser configuration since 
+# 1) this will be changed more frequently and
+# 2) the TeX build takes quite some time.
 
 LABEL "vendor"="Clemens H. Cap"
 LABEL "maintainer"="clemens.cap@uni-rostock.de"
@@ -31,13 +34,11 @@ RUN apk --no-cache update;              \
     apk --no-cache add perl && \
     apk --no-cache add openjdk11-jre && \
     apk --no-cache add ncurses-libs && \
-# libgetopt-long-descriptive-perl  # missing
-#  libdigest-perl-md5-perl  \
     apk --no-cache add perl-unicode-linebreak && \
-#   libfile-homedir-perl libyaml-tiny-perl \ 
     apk --no-cache add python3 && \
     apk --no-cache add py3-pygments && \
     apk --no-cache add curl &&  \
+    # ghostscript
     apk --no-cache add ghostscript && \
     # gnuplot
     apk --no-cache add gnuplot && \
@@ -45,8 +46,6 @@ RUN apk --no-cache update;              \
     apk --no-cache add graphviz && \
     # inkscape
     apk --no-cache add inkscape && \
-    # pandoc ######### LOOKS like this package is not found
-    # apk --no-cache add pandoc && \
     # mupdf
     apk --no-cache add mupdf && \
     # mupdf-tools
@@ -66,18 +65,11 @@ RUN apk --no-cache update;              \
     # furthermore we want our symlinks in the system binary folder to avoid
     echo "tlpdbopt_sys_bin /usr/bin" >> install.profile && \
     # actually install TeX Live
-    ./install-tl -profile install.profile && \
+    ./install-tl -profile install.profile  && \
     # cleanup
     cd /tmp && \
-    rm -Rf /tmp/* 
+    rm -Rf /tmp/* ; \
+    rm /var/cache/apk/*
 
-
-# we derive this image from ssh, so we do not need any entrypoint
-#
-# copy in a local file as entry point
-# COPY entrypoint.sh /
-# ENTRYPOINT ["/entrypoint.sh"]
-#
+# There is already an entrypoint in the base image ssh
 # ENTRYPOINT ["/bin/sh","-c","sleep infinity"]
-
-EXPOSE 22

@@ -3,25 +3,26 @@ Directory ssh contains a minimal training ground for generating and running a do
 
 
 
-### Build ###
-Generate a public, private key pair that we shall use for logging in tino the container.
-```
-ssh-keygen -f ssh-container
-cp ssh-container.pub src
-```
+### Cheat Sheet ###
 
-``` 
-docker build -t ssh src
+#### Preparing an Image ####
 ```
+# we must be in the main directory containers/ssh
+
+# generate a universal public, private key pair that we shall use for logging in into EVERY container running this image
+bin/prepare.sh
+
+# generate the docker image
+bin/generate.sh
+
+# 
+bin/postpare.sh
+```  
+
+#### Running an Image as a Container ####
+
 
 ### Run ###
-```
-docker run -d --name SOME_NAME --network bridge -p:22:22 ssh 
-
--d is for detached
---name provides container with a fresh name
-makes ssh port of container available at port 22 at localhost (provided this port is free)
-```
 
 
 ```
@@ -37,8 +38,6 @@ ssh-keygen -R localhost
 echo "localhost " `cat container-host-key-rsa.pub` >> ~/.ssh/known_hosts
 echo "localhost " `cat container-host-key-ecdsa.pub` >> ~/.ssh/known_hosts
 ```
-
-
 
 
 ssh -i ssh-container cap@localhost
