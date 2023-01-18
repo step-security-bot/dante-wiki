@@ -1,4 +1,5 @@
-This directory is used to construct a the TexLive docker with additional tools using alpine
+This directory is used to construct a TexLive docker image including many additional tools for using LaTeX,
+
 
 ```  
 docker build -t tex src 

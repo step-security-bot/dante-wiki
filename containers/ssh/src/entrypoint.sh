@@ -1,14 +1,11 @@
 #!/bin/sh
 
-echo "** Generating our own, local ssh key..."
-ssh-keygen -A
-echo "DONE"
+# generic entrypoint.sh of ssh docker, may be overwritten by subsequent docker layers
+# NOTE: This design decision is usefull for ssh, since ssh will not remain the only layer as it provides no service after all
 
-echo "** Starting ssh daemon in foreground"
-# exec /usr/sbin/sshd -D -e "$@"
+# call the specific entrypoint of ssh docker
+source ssh-entry.sh
 
-/usr/sbin/sshd -D
-# -d is debug mode
-
-
-echo "after sshd"
+echo "Sleeping for infinity to keep docker container alive..."
+sleep infinity
+echo "Finished sleeping. This should not happen"
