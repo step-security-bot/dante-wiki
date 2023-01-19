@@ -20,8 +20,8 @@ ENV LANG=C.UTF-8 \
   TLMIRRORURL=http://dante.ctan.org/tex-archive/systems/texlive/tlnet
 
 # Upgrade existing packages in the base image
-RUN apk --no-cache update;              \  
-    apk --no-cache upgrade;    \
+RUN apk --no-cache update &&              \  
+    apk --no-cache upgrade &&    \
     apk --no-cache add wget &&  \
     apk --no-cache add rsync && \
     apk --no-cache add unzip && \
@@ -70,7 +70,7 @@ RUN apk --no-cache update;              \
     rm -Rf /usr/local/texlive/2022/texmf-dist/doc && \
     # cleanup
     cd /tmp && \
-    rm -Rf /tmp/* ; \
+    rm -Rf /tmp/* && \
     rm -Rf /var/cache/apk/*
 
 # There is already an entrypoint in the base image ssh
