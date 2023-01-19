@@ -19,6 +19,8 @@ localhost-key.pem
 localhost.pem
 login-key
 login-key.pub
+server.key
+server.pem
 mediawiki-PRIVATE.php
 AWS-PRIVATE.txt
 
