@@ -28,7 +28,7 @@ common ()
 startFpm () 
 {
   echo -n "** Starting fpm in background..."
-  exec /usr/sbin/php-fpm7 --php-ini /etc/php7/php-new.ini
+  /usr/sbin/php-fpm7 --php-ini /etc/php7/php-new.ini
   echo "DONE with starting fpm in the background"; echo ""
 }
 
@@ -36,7 +36,7 @@ startFpm ()
 startApache () 
 {
   echo -n "** Starting apache..."
-  exec /usr/sbin/httpd
+  /usr/sbin/httpd
   echo "DONE with starting apache"; echo ""
 }
 
@@ -49,7 +49,6 @@ if [ "$MODE" = "PHP" ]; then
   startApache
 elif [ "$MODE" = "FPM" ]; then
   echo ""; echo "** Detected FPM mode"; echo ""
-
   startFpm
   startApache
 else

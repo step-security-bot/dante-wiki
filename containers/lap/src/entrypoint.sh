@@ -8,11 +8,11 @@ if [ -f "/ssh-entry.sh" ]; then
   echo "** Found ssh-entry and running it"
   source /ssh-entry.sh
 else
-  echo "** COULD NOT FIND /ssh-entry.sh"
+  echo "** Just as infor: COULD NOT FIND /ssh-entry.sh"
 fi
 
 if [ -f "/apache-php-fpm-entry.sh" ]; then
-  echo "** FOund apache-php-fpm-entry.sh and running it"
+  echo "** Found apache-php-fpm-entry.sh and running it"
   source /apache-php-fpm-entry.sh
 else
   echo "** COULD NOT FIND /apache-php-fpm-entry.sh"

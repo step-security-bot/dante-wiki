@@ -1,4 +1,7 @@
-FROM alpine:3.15
+FROM tex
+
+# FROM tex
+# FROM alpine: 3.15
 
 LABEL "vendor"="Clemens H. Cap"
 LABEL "maintainer"="clemens.cap@uni-rostock.de"
