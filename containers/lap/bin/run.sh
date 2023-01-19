@@ -12,7 +12,11 @@
 #     run.sh --vol NAME
 #
 
-IMAGE_NAME=tex
+MODE=PHP
+export MODE
+
+
+IMAGE_NAME=lap
 ## COULD be: lap    or    tex
 
 usage() {
@@ -102,6 +106,7 @@ docker run -d --name ${CONTAINER_NAME} \
   ${NET_SPEC} \
   ${VOL_SPEC} \
   -h ${HOST_NAME}                 \
+  --env MODE=${MODE}  \
   ${IMAGE_NAME}  `
 
 

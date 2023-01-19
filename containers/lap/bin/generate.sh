@@ -11,6 +11,6 @@ echo ""
 echo "BUILDING image with name ${IMAGE_NAME} from docker context at ${DIR}/../src"
 echo ""
 
-docker build -t ${IMAGE_NAME} ${DIR}/../src
+docker build -t ${IMAGE_NAME} --no-cache  ${DIR}/../src
 
 echo " "; echo "DONE" ; echo " "

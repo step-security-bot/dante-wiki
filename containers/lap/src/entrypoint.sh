@@ -1,18 +1,28 @@
 #!/bin/sh
 
-#!/bin/sh
+# entrypoint of lap
 
-# generic entrypoint.sh of ssh docker, may be overwritten by subsequent docker layers
-# NOTE: This design decision is usefull for ssh, since ssh will not remain the only layer as it provides no service after all
+# call the specific entrypoint of ssh docker if it exists (used when we are built using ssh in the chain)
 
-# call the specific entrypoint of ssh docker
-source /ssh-entry.sh
+if [ -f "/ssh-entry.sh" ]; then
+  echo "** Found ssh-entry and running it"
+  source /ssh-entry.sh
+else
+  echo "** COULD NOT FIND /ssh-entry.sh"
+fi
 
-source /apache-php-fpm-entry.sh
+if [ -f "/apache-php-fpm-entry.sh" ]; then
+  echo "** FOund apache-php-fpm-entry.sh and running it"
+  source /apache-php-fpm-entry.sh
+else
+  echo "** COULD NOT FIND /apache-php-fpm-entry.sh"
+fi
 
 echo "Sleeping for infinity to keep docker container alive..."
 sleep infinity
 echo "Finished sleeping. This should not happen"
+
+
 
 
 
