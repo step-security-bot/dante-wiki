@@ -7,9 +7,10 @@
 ### CAVE: THIS file generates static content in the volume / filesystem but does NO database related and NO dynamic stuff
 
 
-
 # get directory where this script resides wherever it is called from
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 
 echo "DIRECTORY: ${DIR}"
 
