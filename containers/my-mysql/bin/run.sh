@@ -5,7 +5,11 @@
 # get directory where this script resides wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# load some global parameters such as passwords
 source ${DIR}/../../../conf/customize-PRIVATE.sh
+
+
+source ${DIR}/PARAMETERS.sh
 
 
 usage() {
@@ -112,6 +116,7 @@ echo -n "*** Creating DB container ${CONTAINER_NAME} and got id= "
 # export environment variables to the docker container for use there and in the entry point
 
 docker run -d --name ${CONTAINER_NAME}                      \
+  -p:${PORT}:22                                             \
   --network ${NETWORK}                                      \
   -h ${HOST_NAME}                                           \
   -e MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"           \

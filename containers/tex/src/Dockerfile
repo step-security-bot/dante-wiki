@@ -1,7 +1,7 @@
 FROM ssh
 
 # We are starting with our own, small ssh on alpine image
-# We are not starting with an image containing a browser configuration since 
+# We are not starting with an image containing a larger configuration since 
 # 1) this will be changed more frequently and
 # 2) the TeX build takes quite some time.
 

@@ -13,7 +13,6 @@ and a secure shell entry into the system.
 * ```postpare.sh```  prepare the local ssh installation for public key logon
 * ```ssh -i login-key -p 2222 cap@localhost```
 
-
 #### Running an Image as a Container ####
 
 

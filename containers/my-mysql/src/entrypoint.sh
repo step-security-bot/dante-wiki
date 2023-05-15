@@ -1,6 +1,11 @@
 #!/bin/sh
 
 
+
+# call the specific entrypoint of ssh docker
+source ssh-entry.sh
+
+
 echo ""
 echo "*** This is my-mysql:entrypoint.sh ***" 
 echo ""

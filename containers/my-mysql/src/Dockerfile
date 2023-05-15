@@ -1,5 +1,5 @@
-FROM alpine:3.15
-
+FROM ssh
+   
 RUN apk update;   \
     apk --no-cache upgrade;  \
     #   Install
@@ -12,13 +12,14 @@ RUN apk update;   \
 COPY main-my.cnf                       /etc/my.cnf
 COPY entrypoint.sh                     /
 
-EXPOSE 22
 
 # TODO: not yet working - does not provide a negative health check properly when not starting up correctly
 # HEALTHCHECK CMD mysql mysql --user=mysql  --silent --execute "SELECT 1;"
 
+# EXPOSE 22
+
 # Expose for nfs 4  TODO: test if this really is necessary
-EXPOSE 2049
+# EXPOSE 2049
 
 # Expose port for mysql
 EXPOSE 3306

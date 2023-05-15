@@ -26,9 +26,26 @@ In directory /containers/tex/bin run:
 generate.sh
 ```
 
+In directory /containers/lap/bin run:
+
+```
+generate.sh
+```
 
 
+In directory /containers/my-mysql/bin run:
+
+```
+generate.sh
+```
 
 
+## Look into docker container
+
+On the machine:  ```docker exec -it CONTAINER_NAME /bin/ash```
+
+From outside:  ssh -i login-key -p 2222 cap@localhost
+
+login-key is to be found on /containers/ssh of the machine on which the container was run (do not confuse machines !)
 
 
