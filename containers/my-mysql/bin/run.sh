@@ -112,13 +112,17 @@ echo -n "*** Creating DB container ${CONTAINER_NAME} and got id= "
 
 # add below if we want direct ssh access
 #  -p 22:22                                                 \
+###  OR RATHER: -p:${PORT}:22
 
 # export environment variables to the docker container for use there and in the entry point
 
+
+## below: provide USERNAME to trigger ssh mechanism
+
 docker run -d --name ${CONTAINER_NAME}                      \
-  -p:${PORT}:22                                             \
   --network ${NETWORK}                                      \
   -h ${HOST_NAME}                                           \
+  --env USERNAME=${USERNAME}
   -e MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"           \
   -e MYSQL_DUMP_USER="${MYSQL_DUMP_USER}"                   \
   -e MYSQL_DUMP_PASSWORD"${MYSQL_DUMP_PASSWORD}"            \
