@@ -189,7 +189,7 @@ simpleEntryPage () {
 ##
 
 
-cleanup 
+cleanUp 
 
 makeWikiLocal 1.38 0 wiki-dir
 
