@@ -16,5 +16,9 @@ docker cp ${CONTAINER_NAME}:/etc/ssh/ssh_host_rsa_key.pub .
 echo "DONE";
 
 echo ""; echo "Adding hostkey to list of known hosts at ${HOME}"
-echo "localhost " `cat ssh_host_rsa_key.pub` >>  ${HOME}/.ssh/known_hosts
+echo "localhost " `cat ${DIR}/../ssh_host_rsa_key.pub` >>  ${HOME}/.ssh/known_hosts
+echo "DONE";
+
+echo ""; echo "Doing local cleanup"
+rm ${DIR}/../ssh_host_rsa_key.pub
 echo "DONE";
