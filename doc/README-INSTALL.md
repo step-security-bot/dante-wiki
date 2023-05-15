@@ -39,6 +39,16 @@ In directory /containers/my-mysql/bin run:
 generate.sh
 ```
 
+In directory /container/lap/bin run:
+
+```
+generate.sh
+```
+
+
+volumes/full/spec/cmd.sh
+
+
 
 ## Look into docker container
 
@@ -47,5 +57,18 @@ On the machine:  ```docker exec -it CONTAINER_NAME /bin/ash```
 From outside:  ssh -i login-key -p 2222 cap@localhost
 
 login-key is to be found on /containers/ssh of the machine on which the container was run (do not confuse machines !)
+
+
+
+## Look into containers
+
+ssh:
+tex:
+
+
+my-mysql:  ssh -i login-key cap@IP-OF-MY-MYSQL-CONTAINER‚
+
+
+
 
 

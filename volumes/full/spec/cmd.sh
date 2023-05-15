@@ -11,6 +11,8 @@
 # get directory where this script resides wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+echo "DIRECTORY: ${DIR}"
+
 
 # region cleanUp: Code to clean up this directory
 # region
