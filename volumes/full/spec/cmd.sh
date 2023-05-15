@@ -62,6 +62,7 @@ makeWikiLocal () {
 
   if [ ! -f "$LOCAL_FILE" ]; then
     echo "*** Local cached version is missing, pulling from the network"
+    mkdir -p ${DIR}/../../../vendor/mediawiki
     cd ${DIR}/../../../vendor/mediawiki
     wget https://releases.wikimedia.org/mediawiki/${WIKI_VERSION_MAJOR}/${WIKI_NAME}.tar.gz;
     cd ${DIR}
