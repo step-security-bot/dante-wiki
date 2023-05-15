@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # configurable shell script which builds up content in /volumes/full/content
 # it takes no parameters
