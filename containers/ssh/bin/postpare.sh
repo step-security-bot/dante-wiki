@@ -2,7 +2,10 @@
 
 # configures the local user for 
 
-source bin/PARAMETERS.sh
+# get directory this shell is running in
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source ${DIR}/PARAMETERS.sh
 
 echo ""; echo "Removing possible old fingerprints for localhost"
 ssh-keygen -R localhost

@@ -1,8 +1,10 @@
 #!/bin/bash
 
 
+# get directory this shell is running in
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-source bin/PARAMETERS.sh
+source ${DIR}/PARAMETERS.sh
 
 echo ""; echo "Stopping and removing container ${CONTAINER_NAME} if one is running..."
 docker container stop ${CONTAINER_NAME} -t 0

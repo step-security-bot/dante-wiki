@@ -15,12 +15,34 @@
   docker run hello-world
 
 
+We are not using buildx.
+
+in ~user/.docker make a file
+
+  {  "features": { "buildkit": false } }
+
+
+Restart docker:
+
+  sudo service docher restart
+
+
+
 Clone the github repository
 
   git clone https://github.com/clecap/continuous-deployment-test
 
 
+
+
+
+
 == Build Docker Containers ==
 
-  container/ssh/bin/generate.sh
-  container/tex/bin/generate.sh
+  containers/ssh/bin/prepare.sh
+  containers/ssh/bin/generate.sh
+  containers/ssh/bin/postpare.sh
+
+
+
+  containers/tex/bin/generate.sh
