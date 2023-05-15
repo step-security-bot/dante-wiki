@@ -18,6 +18,7 @@ echo "DIRECTORY: ${DIR}"
 # region cleanUp: Code to clean up this directory
 # region
 cleanUp () {
+  mkdir -p ${DIR}/../content
   cd ${DIR}/..
   rm -Rf content/*
 }
@@ -155,7 +156,7 @@ getSkins () {
 getWP () {
   USERNAME=$1
 
-  echo "\n** Making local directory"
+  echo ""; echo "** Making local directory"
   cd ${DIR}/../content
   mkdir wp-${USERNAME}
   echo "DONE making local directory\n"
@@ -188,11 +189,11 @@ simpleEntryPage () {
 ##
 
 
-## cleanup 
+cleanup 
 
-## makeWikiLocal 1.38 0 wiki-dir
+makeWikiLocal 1.38 0 wiki-dir
+
 ## getSkins wiki-dir
-
 
 ## simpleEntryPage
 
