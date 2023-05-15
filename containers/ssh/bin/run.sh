@@ -17,7 +17,7 @@ echo "DONE"
 #  --network bridge  connects to network
 
 echo ""; echo "Starting ${CONTAINER_NAME} for docker image ${IMAGE_NAME}..."
-docker run -d --name ${CONTAINER_NAME} --network bridge -p:22:22 --env USERNAME=${USERNAME} ${IMAGE_NAME} 
+docker run -d --name ${CONTAINER_NAME} --network bridge -p:${PORT}:22 --env USERNAME=${USERNAME} ${IMAGE_NAME} 
 echo "DONE"
 
 echo "";echo""; echo "Waiting a bit for output from entrypoint. Can repeat this manually:  docker logs ${CONTAINER_NAME}  "; echo "_______________________"; echo "";

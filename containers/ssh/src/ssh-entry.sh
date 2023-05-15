@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Script which may be called by entrypoint.sh
+# Only called if we do not overwrite entrypoint.sh by subsequent layers
+#
+
 makessh () 
 {
   echo " Found username ${USERNAME}"
@@ -50,9 +54,10 @@ makessh ()
 
 # exec /usr/sbin/sshd -D -e "$@"
 # -e
+#  echo "INFO: after starting sshd (should not happen)"
 
+#### control now handed back to calling entrypoint.sh
 
-  echo "INFO: after starting sshd (should not happen)"
 }
 
 nossh () 

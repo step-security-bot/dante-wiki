@@ -16,4 +16,6 @@ chmod 0400 ${DIR}/../login-key
 # copy the PUBLIC key into the docker context area
 cp ${DIR}/../login-key.pub ${DIR}/../src
 
+echo "Removing entries for localhost in known_hosts, error not found is ok"
 ssh-keygen -R localhost
+echo "DONE"

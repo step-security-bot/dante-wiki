@@ -6,6 +6,6 @@
 # call the specific entrypoint of ssh docker
 source ssh-entry.sh
 
-echo "Sleeping for infinity to keep docker container alive..."
+echo "entrypoint.sh: Sleeping for infinity to keep docker container alive..."
 sleep infinity
-echo "Finished sleeping. This should not happen"
+echo "entrypoint.sh: Finished sleeping. This should not happen"
