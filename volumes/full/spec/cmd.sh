@@ -18,6 +18,8 @@ echo "DIRECTORY: ${DIR}"
 # region cleanUp: Code to clean up this directory
 # region
 cleanUp () {
+  mkdir -p ${DIR}/../../../vendor
+  rm -Rf ${DIR}/../../../vendor
   mkdir -p ${DIR}/../content
   cd ${DIR}/..
   rm -Rf content/*
