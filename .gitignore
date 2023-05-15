@@ -9,6 +9,9 @@ mupdf-1.20.3-source/
 mupdf-1.20.3-source.tar
 
 
+volumes/full/content
+volumes/minimal/content
+
 vendor/
 
 #
