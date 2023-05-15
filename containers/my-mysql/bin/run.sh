@@ -122,6 +122,7 @@ echo -n "*** Creating DB container ${CONTAINER_NAME} and got id= "
 docker run -d --name ${CONTAINER_NAME}                      \
   --network ${NETWORK}                                      \
   -h ${HOST_NAME}                                           \
+  -p:${PORT}:22                                             \
   --env USERNAME=${USERNAME}                                \
   -e MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"           \
   -e MYSQL_DUMP_USER="${MYSQL_DUMP_USER}"                   \
