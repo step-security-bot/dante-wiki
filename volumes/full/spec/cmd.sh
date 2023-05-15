@@ -3,20 +3,26 @@
 # configurable shell script which builds up content in /volumes/full/content
 # it takes no parameters
 
+
+### CAVE: THIS file generates static content in the volume / filesystem but does NO database related and NO dynamic stuff
+
+
+
 # get directory where this script resides wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
-## cleanUp: Code to clean up this directory
+# region cleanUp: Code to clean up this directory
 # region
 cleanUp () {
   cd ${DIR}/..
   rm -Rf content/*
 }
 # endregion
+#endregion
 
 
-## makeWiki: Installs mediawiki directly from the network
+# region makeWiki: Installs mediawiki directly from the network
 ##           call as  makeWiki  MAJOR  MINOR  TARGET
 ##           example:  makeWiki 1.38.0 wiki-dir
 # region
@@ -33,9 +39,10 @@ makeWiki () {
   rm ./${WIKI_NAME}.tar.gz
 }
 # endregion
+# endregion
 
 
-## makeWikiLocal: Installs mediawiki from local cache directory vendor
+# region makeWikiLocal: Installs mediawiki from local cache directory vendor
 ##                call as  makeWiki  MAJOR  MINOR  TARGET
 ##                example:  makeWiki 1.37.0 wiki-dir
 # region
@@ -63,27 +70,11 @@ makeWikiLocal () {
   echo "DONE"
 }
 # endregion
-
-
-
-## makeWP: Installs wordpress directly from the network
-##         call as makeWP VERSION  TARGET
-# region
-makeWP () {
-  WP_VERSION=$1
-  TARGET=$2
-  WP_NAME=wordpress-${WP_VERSION}
-  cd ${DIR}/../content
-  mkdir -p ${TARGET}
-  cd ${TARGET}
-  wget https://wordpress.org/${WP_NAME}
-  tar --strip-components=1 -xvzf ${WP_NAME}.tar.gz
-  rm ./${WP_NAME}.tar.gz
-}
 # endregion
 
 
-## getMWExtension: Installs a mediawiki extension from gerrit or github
+
+# region getMWExtension  Installs a mediawiki extension from gerrit or github
 ##                 call as getMWExtension  NAME  RELEASE  TARGET  SRC
 ##                 example:  getMWExtension TitleKey  REL1_38  wiki-dir  gerrit
 # region
@@ -109,9 +100,10 @@ getMWExtension () {
   rm -Rf .git 
 }
 # endregion
+# endregion
 
-## getSkins: get some additional skins from gerrit
-#region
+
+#region getSkins: get some additional skins from gerrit
 getSkins () {
   TARGET=$1
   TOP=${DIR}/../content/${TARGET}
@@ -156,23 +148,35 @@ getSkins () {
 
 
 
-## get the wordpress command line interpreter
-# does not work as it must run inside a container with mysql availabel
-getWP_CLI () {
+#region:  getWP    get wordpress command line for user $1 in directory wp-$1
+getWP () {
+  USERNAME=$1
 
+  echo "\n** Making local directory"
+  cd ${DIR}/../content
+  mkdir wp-${USERNAME}
+  echo "DONE making local directory\n"
+
+  echo "\n** Installing wordpress command line\n"
+  cd ${DIR}/../content/wp-${USERNAME}
   wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-  php wp-cli.phar --info
   chmod 755 wp-cli.phar
-## ./wp-cli.phar core download
-##  ./wp-cli.phar config create --dbname=${DB_NAME} --dbuser=${DB_USER} --prompt=${DB_PASS}
-}
+  echo "DONE installing wordpress command line\n"
 
-## dynamically generate a simple entry page
+  # we do not want to execute this here as this requires PHP and we want to run it not under the PHP version installed on the host but 
+  # on the 
+}
+#endregion
+
+
+#region  simpleEntyPage   dynamically generate a simple entry page
 simpleEntryPage () {
   cd ${DIR}/../content
   echo "<html><head></head><body><a href='wiki-dir'>Wiki</a></body></html>" >>  index.html
-
 }
+#endregion
+
+
 
 
 
@@ -180,12 +184,18 @@ simpleEntryPage () {
 ## Install Mediawiki files
 ##
 
-### CAVE 
-#### cleanUp 
 
-makeWikiLocal 1.38 0 wiki-dir
-getSkins wiki-dir
-simpleEntryPage
+## cleanup 
+
+## makeWikiLocal 1.38 0 wiki-dir
+## getSkins wiki-dir
+
+
+## simpleEntryPage
+
+
+getWP word
+
 
 
 echo ""

@@ -13,6 +13,10 @@ echo ""
 
 
 
+
+####################################################  CAVE: we are not setting a mysql root password !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 mkdir -p /run/mysqld
 chown -R mysql:mysql /run/mysqld
 

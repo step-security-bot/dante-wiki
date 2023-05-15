@@ -1,15 +1,11 @@
 #!/bin/bash
 
-
-# This is a set of library functions for the dynamical parts of initializing a wiki system
+# This is a set of library functions for initializing the DYNAMICAL and DATABSE parts of a mediawiki, wordpress or similar system.
 
 # ASSUMPTIONS:  A running configuration with a DB and an LAP container
 #
 # The file area may be a volume or a directory.
 #
-
-
-
 
 
 # parameters:
@@ -41,8 +37,7 @@ DB_CONTAINER=my-mysql
 #  The list of these plugins we must get form error messages in the composer runs
 #
 composerPermissions () {
-  echo ""
-  echo "** Configuring permissions for composer"
+  printf "\n** Configuring permissions for composer\n"
 
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer config --no-plugins allow-plugins.wikimedia/composer-merge-plugin true       "
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer config --no-plugins allow-plugins.composer/package-versions-deprecated true  "
@@ -52,24 +47,20 @@ composerPermissions () {
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=${MOUNT}/${VOLUME_PATH}/composer.local.json composer config --no-plugins allow-plugins.composer/package-versions-deprecated true  "
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=${MOUNT}/${VOLUME_PATH}/composer.local.json composer config --no-plugins allow-plugins.composer/installers true  "  
 
-  echo "DONE configuring permissions for composer"
-  echo ""
+  printf "\nDONE configuring permissions for composer\n"
 }
 # endregion
 
 
 
 composerUpdate () {
-  echo ""
-  echo "*** Do a composer update on the global file"
+  printf "\n*** Do a composer update on the global file\n"
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer update --no-dev -o  --no-interaction "
-  echo ""
+  printf "DONE with the composer update on the global file\n"
 
-  echo ""
-  echo "*** Do a composer update on the local file"
+  printf "\n*** Do a composer update on the local file\n"
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=composer.local.json composer update --no-dev -o  --no-interaction "
-  echo "DONE with local composer update"
-  echo ""
+  printf "DONE with local composer update\n"
 }
 
 # region installExtensionGithub ()   
@@ -166,36 +157,48 @@ composer () {
 # endregion
 
 
-
-# region  addDatabase:  add a username and a database to the database engine
-#
-addDatabase () {
-
-  DB_NAME="DB_${DB_USER}"
-
-##
-## Add Wiki to Database
-##
-  echo ________________
-  echo "*** Making a database ${DB_NAME} with main user ${DB_USER} and password ${DB_PASS}: "
-  echo ""
+# region dropDatabase  DB_NAME  
+# drops a database. could be helpful before an addDatabase
+dropDatabase () {
+  local MY_DB_NAME=$1
+  
+  printf "\n * dropDatabase: Dropping database ${MY_DB_NAME} \n"
 
 # TODO: Adapt the permissions granted to the specific environment and run-time conditions.
 docker exec -i ${DB_CONTAINER} mysql -u root --password=${MYSQL_ROOT_PASSWORD} <<MYSQLSTUFF
-CREATE DATABASE IF NOT EXISTS ${DB_NAME} /*\!40100 DEFAULT CHARACTER SET utf8 */;
-CREATE USER IF NOT EXISTS ${DB_USER}@'%' IDENTIFIED BY '${DB_PASS}';
-CREATE USER IF NOT EXISTS ${DB_USER}@localhost IDENTIFIED BY '${DB_PASS}';
--- CREATE USER IF NOT EXISTS ${DB_USER}@'0.0.0.0/0.0.0.0' IDENTIFIED BY '${DB_PASS}';
-GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';
-GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';
--- GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'0.0.0.0/0.0.0.0';
+DROP DATABASE ${MY_DB_NAME} /*\!40100 DEFAULT CHARACTER SET utf8 */;
+MYSQLSTUFF
+
+EXIT_CODE=$?
+printf "DONE: Exit code of dropDatabase generated database call: ${EXIT_CODE}"
+}
+#endregion
+
+
+# region  addDatabase:  add a username and a database to the database engine
+##        addDatabase  database-name   db-user-name   db-userpassword
+addDatabase () {
+  local MY_DB_NAME=$1
+  local MY_DB_USER=$2
+  local MY_DB_PASS=$3
+ 
+  printf "\n * addDatabase: Making a database ${MY_DB_NAME} with user ${MY_DB_USER} and password ${MY_DB_PASS} \n"
+
+# TODO: Adapt the permissions granted to the specific environment and run-time conditions.
+# TODO: CURRENTLY We ARE NOT USING A MYSQL_ROOT_PASSWORD (the empty passowrd works !!!)
+docker exec -i ${DB_CONTAINER} mysql -u root --password=${MYSQL_ROOT_PASSWORD} <<MYSQLSTUFF
+CREATE DATABASE IF NOT EXISTS ${MY_DB_NAME} /*\!40100 DEFAULT CHARACTER SET utf8 */;
+CREATE USER IF NOT EXISTS ${MY_DB_USER}@'%' IDENTIFIED BY '${MY_DB_PASS}';
+CREATE USER IF NOT EXISTS ${MY_DB_USER}@localhost IDENTIFIED BY '${MY_DB_PASS}';
+-- CREATE USER IF NOT EXISTS ${MY_DB_USER}@'0.0.0.0/0.0.0.0' IDENTIFIED BY '${MY_DB_PASS}';
+GRANT ALL PRIVILEGES ON ${MY_DB_NAME}.* TO '${MY_DB_USER}'@'%';
+GRANT ALL PRIVILEGES ON ${MY_DB_NAME}.* TO '${MY_DB_USER}'@'localhost';
+-- GRANT ALL PRIVILEGES ON ${MY_DB_NAME}.* TO '${MY_DB_USER}'@'0.0.0.0/0.0.0.0';
 FLUSH PRIVILEGES;
 MYSQLSTUFF
 
 EXIT_CODE=$?
-echo "* DONE: Exit code of database call: ${EXIT_CODE}"
-##
-
+printf "DONE: Exit code of addDatabase generated database call: ${EXIT_CODE}"
 }
 # endregion
 
@@ -215,7 +218,10 @@ runMWInstallScript () {
   # MEDIAWIKI_SITE_SERVER="https://${LAP_CONTAINER}"
   # TODO: problem: LAP_CONTAINER name is not resolved in the docker host
 ################################################################# TODO: ADJUST 
-  MEDIAWIKI_SITE_SERVER="https://192.168.2.37"
+######
+###### This should rather be a name, maybe localhost TODO: because other wise the different https things do not match
+######
+  MEDIAWIKI_SITE_SERVER="https://localhost"
   MEDIAWIKI_SCRIPT_PATH="/${VOLUME_PATH}"
   # TODO: make language variable inputable into script 
   MEDIAWIKI_SITE_LANG=en
@@ -326,6 +332,8 @@ patchingForChameleon () {
 ##
 initialize () {
   DB_USER=$1
+
+  DB_NAME="DB_${DB_USER}"
   DB_PASS="password-$1"
   WK_USER=$1
   WK_PASS="password-$1"
@@ -345,7 +353,9 @@ initialize () {
   fi
   echo ""
 
-  addDatabase
+ 
+  addDatabase ${DB_NAME} ${DB_USER} ${DB_PASS}
+  printf "DONE adding database and user"
 
   # composer must run before the installscript so that the installscript has all the available extensions ready
   # this is necessary, since the installscript does an autoregistration of some components, for example the installed skins
@@ -373,33 +383,110 @@ initialize () {
 
 
 
+## for setting up wordpress, we start with a username 
+## CAVE: wikis currently do this differently, by traversing the file system and picking up directories   ### TODO: make this uniform !!
+
+## TODO: turn more stuff into parameter, particularly passwords and user names
+
+initWP () {
+  USERNAME=$1
+
+  VERSION=6.1.1
+  LOCALE=en_DB
+
+  DB_NAME="WP_${USERNAME}"
+  DB_USER="${USERNAME}"
+  # CAVE: DB_USER must not contain a minus sign
+
+  # TODO: This must be adjusted
+  DB_PASS="password-wp"
+
+  URL=https://localhost/wp-word
+
+  # Wordpress Admin USer
+  ADMIN_USER="wp-user"
+
+  # This must be adjusted
+  ADMIN_PASSWORD="password-admin"
+
+  # TODO: This must be adjusted
+  ADMIN_EMAIL="clemens@clemens-cap.de"
+
+  # OS / Linux User for the file ownership
+  LINUX_USER="lnx-wp-${USERNAME}"
+
+## TODO: for security reasons we want a different user/pw on the web side than on the db side (the db side secures the data but is not open for web-side brute force attacks)
+
+  # Name of the wp installation
+  WP_TITLE="Adhuc Stat"
+
+  # directory in which to build the Wordpress installation
+  VOLUME_PATH="wp-${USERNAME}"
+
+  # add database to DB system
+  printf "\n** Generating database ${DB_NAME} and DB user ${DB_USER}\n"
+  dropDatabase ${DB_NAME}
+  addDatabase ${DB_NAME} ${DB_USER} ${DB_PASS}
+  printf "DONE generating database\n"
+
+  printf "\n** Generating OS User ${LINUX_USER} for Wordpress\n"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} adduser -D ${LINUX_USER}
+  printf "DONE generating OS User\n"
+
+  printf "\n** Downloading wordpress core version ${VERSION}\n"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} --user ${LINUX_USER} ${LAP_CONTAINER} ./wp-cli.phar core download --version=${VERSION}
+  printf "DONE downloading wordpress core version ${VERSION}\n"
+
+  printf "\n** Creating client configuration\n"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} --user ${LINUX_USER} ${LAP_CONTAINER} ./wp-cli.phar config create --force  --url=${URL} --dbhost=${DB_CONTAINER}  --dbname=${DB_NAME} --dbuser=${DB_USER} --dbpass=${DB_PASS} --locale=${LOCALE}
+  printf "DONE creating client configuration\n"
+
+  # --skip-email since we here do not have access to sendmail
+  printf "\n** Installing core\n"
+  docker exec -w /${MOUNT}/${VOLUME_PATH} --user ${LINUX_USER} ${LAP_CONTAINER} ./wp-cli.phar core install --url=${URL} --title="${WP_TITLE}" --admin_name=${ADMIN_USER} --admin_password=${ADMIN_PASSWORD} --admin_email=${ADMIN_EMAIL} --skip-email
+  printf "DONE installing core\n"
+
+#  docker exec -w /${MOUNT}/${VOLUME_PATH} --user ${LINUX_USER}  ${LAP_CONTAINER}  mkdir -p wp-content/uploads
+#####  docker exec -w /${MOUNT}/${VOLUME_PATH} --user ${LINUX_USER}  ${LAP_CONTAINER}  chgrp web uploads/
+#  docker exec -w /${MOUNT}/${VOLUME_PATH} --user ${LINUX_USER}  ${LAP_CONTAINER} chmod 775 uploads/
+
+#  printf "\n** Setting permissions\n"
+#  docker exec -w /${MOUNT}/${VOLUME_PATH} --user ${LINUX_USER}  ${LAP_CONTAINER}  chmod 600 wp-config.php
+#  printf "\nDONE setting permissions\n"
+
+}
+
+
 
 # region main  MAIN function of the shell script
 ##
 main () {
 WIKIS="${DIR}/../content/wiki-"*
 
-echo ""
-echo "*** List of wiki subdirectories found: ${WIKIS} "
-echo ""
+printf "\n*** List of wiki subdirectories found: ${WIKIS} \n"
 
 for WIKI in ${WIKIS}
 do
-  echo ""
-  echo "*** Initializing WIKI: ${WIKI}"
+  printf "\n*** Initializing WIKI: ${WIKI}\n"
   if [[ $WIKI =~ wiki-([a-zA-Z0-9_]+)$ ]]; 
   then 
 
     initialize ${BASH_REMATCH[1]}
   else 
-    echo "*** Skipping ${WIKI} as it is not in proper format"; 
+    printf "\n*** Skipping ${WIKI} as it is not in proper format\n" 
   fi
 done
 }
 # endregion
 
-
 main 
+
+# initWP word
+
+
+
+
+
 
 
 #### THIS probably partially into dockerfile

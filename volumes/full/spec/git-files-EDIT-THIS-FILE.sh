@@ -5,7 +5,7 @@
 
 # NOTE: Shell lists do not have a comma separator
 
-declare -a MY_FILES=("DanteSettings.php")
+declare -a MY_FILES=("DanteSettings.php"  "DanteSettings-production.php"  "DanteSettings-development.php")
 
-declare -a MY_DIRECTORIES=("extensions/DanteBread"   "extensions/DantePresentations"   "extensions/DanteBackup"  "extensions/DanteSyntax"  "skins/skinny"  "skins/DantePresentationSkin")
+declare -a MY_DIRECTORIES=("extensions/DanteBread"  "extensions/DanteSnippets"   "extensions/DanteTree"   "extensions/DantePresentations"   "extensions/DanteBackup"  "extensions/DanteSyntax"  "skins/skinny"  "skins/DantePresentationSkin")
 add

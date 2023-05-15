@@ -2,13 +2,10 @@
 
 # run a mysql database on local docker infrastructure using docker context in my-mysql/src
 
-
-
 # get directory where this script resides wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source ${DIR}/../../../conf/customize-PRIVATE.sh
-
 
 
 usage() {
