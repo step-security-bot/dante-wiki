@@ -49,9 +49,9 @@ printf "*** Building the required directory path ${VOLUME_PATH}..."
 docker exec ${TEMP} mkdir -p ${MOUNT}/${VOLUME_PATH}
 printf "DONE building the required directory path\n"
 
-print "*** ls on ${MOUNT}..."
+printf "*** ls on ${MOUNT}..."
 docker exec ${TEMP} ls ${MOUNT}
-print "DONE ls on ${MOUNT}\n"
+printf "DONE ls on ${MOUNT}\n"
 
 docker cp ${SRC} ${TEMP}:/${MOUNT}/${VOLUME_PATH}
 echo
