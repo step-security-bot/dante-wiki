@@ -53,7 +53,7 @@ Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir f
 
 Test: wget --no-check-certificate
 
-volumes/full/spec/git-pull-from-delta.sh
+Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
 
 ## Look into docker container
 
