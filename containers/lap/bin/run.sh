@@ -103,8 +103,8 @@ echo ""
 
 echo "*** Creating LAP container and got id= " `
 docker run -d --name ${CONTAINER_NAME} \
-  -p  80:80                       \
-  -p 443:443                      \
+  -p  ${PORT_HTTP}:80                       \
+  -p ${PORT_HTTPS}:443                      \
   ${NET_SPEC}                     \
   ${VOL_SPEC}                     \
   -h ${HOST_NAME}                 \
