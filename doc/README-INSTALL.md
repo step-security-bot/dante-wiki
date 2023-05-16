@@ -46,7 +46,11 @@ generate.sh
 ```
 
 
-volumes/full/spec/cmd.sh
+Generate volume: ```volumes/full/spec/cmd.sh```
+
+
+Run both processes: ```containers/lap/bin/both.sh```
+
 
 
 

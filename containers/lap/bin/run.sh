@@ -15,6 +15,8 @@
 MODE=PHP
 export MODE
 
+PORT_HTTP=8080
+PORT_HTTPS=4443
 
 IMAGE_NAME=lap
 ## COULD be: lap    or    tex
