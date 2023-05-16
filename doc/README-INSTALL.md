@@ -49,10 +49,11 @@ generate.sh
 Generate volume: ```volumes/full/spec/cmd.sh```
 
 
-Run both processes: ```containers/lap/bin/both.sh```
+Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
 
+Test: wget --no-check-certificate
 
-
+volumes/full/spec/git-pull-from-delta.sh
 
 ## Look into docker container
 
@@ -73,6 +74,8 @@ tex:
 my-mysql:  ssh -i login-key cap@IP-OF-MY-MYSQL-CONTAINER‚
 
 
+
+wget --no-check-certificate
 
 
 

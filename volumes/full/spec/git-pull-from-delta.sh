@@ -13,32 +13,31 @@ WIKI=${DIR}/../content/wiki-dir
 # go to main directory of wiki
 cd ${WIKI}
 
-echo ""
-echo "_____________________"
-echo ""
+printf "\n_____________________\n"
 
 # ensuring we are starting from a clean slate
-echo "*** Removing git directory"
+printf "*** Removing git directory..."
 rm -Rf .git
-echo "DONE"
-echo ""
-
+printf "DONE removing git directory\n\n"
 
 # initialize a git there
-echo "*** Initializing a git"
+printf "*** Initializing a git..."
 git init
 git config --local core.excludesfile ${DIR}/../../spec/.gitignore
-echo "DONE"
-echo ""
+printf "DONE initializing a git\n\n"
 
 # connect to the dante delta repository
-echo "*** adding github as remote"
+printf "*** adding github as remote..."
 git remote add origin https://github.com/clecap/dante-delta.git
-echo "DONE"
-echo ""
+printf "DONE adding github as remote\n"
 
+printf "***fetching origin..."
 git fetch origin
+printf "DONE fetching origin\n"
+
+printf "***hard reset on local git..."
 git reset --hard origin/main
+printf "DONE hard reset"
 
 echo "*** copy in some private credentials which we do not want to place into the repository and therefore store locally on the host"
 cp ${DIR}/../../../conf/mediawiki-PRIVATE.php ${WIKI}
@@ -47,6 +46,11 @@ echo ""; echo "DONE"; echo ""
 
 echo -e "\e[1;41m completed GIT PULL FROm DELTA \e[0m"
 
+printf "\e[1;41m completed GIT PULL FROm DELTA \e[0m"
+
+
 echo "\033[31mThis is red font.\033[0m"
+printf "\033[31mThis is red font.\033[0m"
+
 
 echo ""
