@@ -47,7 +47,7 @@ echo "Will now copy from volumes/${VOLUME_NAME}/content/. into  ${TEMP}:/${MOUNT
 
 printf "*** Building the required directory path ${VOLUME_PATH}..."
 docker exec ${TEMP} mkdir -p ${MOUNT}/${VOLUME_PATH}
-prinf "DONE building the required directory path\n"
+printf "DONE building the required directory path\n"
 
 print "*** ls on ${MOUNT}..."
 docker exec ${TEMP} ls ${MOUNT}
