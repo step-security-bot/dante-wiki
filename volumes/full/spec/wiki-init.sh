@@ -24,6 +24,9 @@ MOUNT="/var/www/html"
 # get directory where this script resides, wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+source ${DIR}/../../../conf/customize-PRIVATE.sh
+
+
 # Names of the containers which we assume are running
 LAP_CONTAINER=my-lap-container
 DB_CONTAINER=my-mysql
@@ -221,9 +224,10 @@ runMWInstallScript () {
 ######
 ###### This should rather be a name, maybe localhost TODO: because other wise the different https things do not match
 ######
-  MEDIAWIKI_SITE_SERVER="https://localhost"
+#  MEDIAWIKI_SITE_SERVER="https://localhost"
+  MEDIAWIKI_SITE_SERVER=${MW_SITE_SERVER}
   MEDIAWIKI_SCRIPT_PATH="/${VOLUME_PATH}"
-  # TODO: make language variable inputable into script 
+  # TODO: make language variable inputable into script
   MEDIAWIKI_SITE_LANG=en
   MEDIAWIKI_ADMIN_USER=${WK_USER}
   MEDIAWIKI_ADMIN_PASS=${WK_PASS}
@@ -476,6 +480,10 @@ do
     printf "\n*** Skipping ${WIKI} as it is not in proper format\n" 
   fi
 done
+
+printf "\n*** Fix file ownerships..."
+docker exec ${LAP_CONTAINER} /bin/sh -c "chown -R apache.apache /var/www/html"
+
 }
 # endregion
 

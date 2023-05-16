@@ -52,9 +52,7 @@ In directory /container/lap/bin run:
 generate.sh
 ```
 
-
 Generate volume: ```volumes/full/spec/cmd.sh```
-
 
 Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
 
@@ -66,6 +64,12 @@ Prepare file ```conf/mediawiki-PRIVATE.php``` following ```mediawiki-SAMPLE.php`
 
 
 Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
+
+Install Parsifal: ```volumes/full/spec/git-clone-dante-from-parsifal.sh```
+
+Initialize Wiki: ```volumes/full/spec/wiki-init.sh```
+
+
 
 ## Look into docker container
 
