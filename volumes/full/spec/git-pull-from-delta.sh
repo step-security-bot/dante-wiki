@@ -38,17 +38,13 @@ printf "DONE fetching origin\n"
 printf "***hard reset on local git..."
 git reset --hard origin/main
 printf "DONE hard reset"
-
+  
 echo "*** copy in some private credentials which we do not want to place into the repository and therefore store locally on the host"
 cp ${DIR}/../../../conf/mediawiki-PRIVATE.php ${WIKI}
 
 echo ""; echo "DONE"; echo ""
 
-# echo -e "\e[1;41m completed GIT PULL FROm DELTA \e[0m"
 
-printf "\033[31m completed GIT PULL FROm DELTA \033[0m"
-
-printf "\033[31mThis is red font.\033[0m"
+printf "\033[31m completed GIT PULL from DELTA \033[0m \n"
 
 
-echo ""
