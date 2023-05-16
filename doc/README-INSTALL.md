@@ -7,6 +7,13 @@
 * Log out and log in again as ${USER}
 * Check if docker is operative: ```docker run hello-world```
 
+
+## Install git and git credential manager on the target machine
+* For Linux/Debian see: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md and follow Debian instructions
+* Get a github permission token
+* Configure helper according to https://docs.github.com/en/get-started/getting-started-with-git/caching-your-github-credentials-in-git
+
+
 ## Clone the github repository
 
   ```git clone https://github.com/clecap/continuous-deployment-test ```
@@ -52,6 +59,11 @@ Generate volume: ```volumes/full/spec/cmd.sh```
 Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
 
 Test: wget --no-check-certificate
+
+Prepare file ```conf/customize-PRIVATE.sh``` following ```customize-SAMPLE.sh```
+
+Prepare file ```conf/mediawiki-PRIVATE.php``` following ```mediawiki-SAMPLE.php```
+
 
 Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
 

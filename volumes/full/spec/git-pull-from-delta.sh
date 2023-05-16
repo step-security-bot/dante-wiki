@@ -44,12 +44,10 @@ cp ${DIR}/../../../conf/mediawiki-PRIVATE.php ${WIKI}
 
 echo ""; echo "DONE"; echo ""
 
-echo -e "\e[1;41m completed GIT PULL FROm DELTA \e[0m"
+# echo -e "\e[1;41m completed GIT PULL FROm DELTA \e[0m"
 
-printf "\e[1;41m completed GIT PULL FROm DELTA \e[0m"
+printf "\033[31m completed GIT PULL FROm DELTA \033[0m"
 
-
-echo "\033[31mThis is red font.\033[0m"
 printf "\033[31mThis is red font.\033[0m"
 
 
