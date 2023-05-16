@@ -53,14 +53,17 @@ printf "*** ls on ${MOUNT}..."
 docker exec ${TEMP} ls ${MOUNT}
 printf "DONE ls on ${MOUNT}\n"
 
+printf "*** cp ${SRC}  ${TEMP}:/${MOUNT}/${VOLUME_PATH}..."
 docker cp ${SRC} ${TEMP}:/${MOUNT}/${VOLUME_PATH}
-echo
+printf "DONE cp\n"
 
-echo "now doing: docker exec ${TEMP} ${SRC}/../spec/cmd.sh "
-echo ""
+printf "*** ls on ${MOUNT}..."
+docker exec ${TEMP} ls ${MOUNT}
+printf "DONE ls on ${MOUNT}\n"
 
 
-
+#echo "now doing: docker exec ${TEMP} ${SRC}/../spec/cmd.sh "
+#echo ""
 # ${SRC}/../spec/cmd.sh
 #/Users/cap/DOCKER/continuous-deployment-test/volumes/minimal/spec/cmd.sh
 
