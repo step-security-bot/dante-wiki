@@ -10,7 +10,7 @@
 
 # Parse the command line
 if [ "$#" -ne 3 ]; then
-  echo "Usage: $0 DIR_NAME VOLUME_NAME  VOLUME_PATH " >&2
+  echo "Usage: $0  DIR_NAME  VOLUME_NAME  VOLUME_PATH " >&2
   echo "Adds contents of directory DIR_NAME to volume VOLUME_NAME at VOLUME_PATH " >&2
   exit 1
 else
@@ -19,19 +19,17 @@ else
   export VOLUME_PATH=$3
 fi
 
-
-
 ## two temporary symbols
 #  TEMP: Name of the temporary busybox container which does the copying
 export TEMP=temporary-busybox
-#  MOUNT: where the volume is mounted to the temporary copying container
+#  MOUNT: where is the volume mounted to the temporary copying container
 export MOUNT=/mnt
 
 # get directory where this script resides wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # source directory on host
-SRC=${DIR}/../../../volumes/${DIR_NAME}/content/.
+SRC=${DIR}/../volumes/${DIR_NAME}/content/.
 
 echo ""
 
@@ -58,8 +56,7 @@ ${SRC}/../spec/cmd.sh
 #/Users/cap/DOCKER/continuous-deployment-test/volumes/minimal/spec/cmd.sh
 
 
-echo "Stopping and removing temporary container"
-echo
+printf "*** Stopping and removing temporary container..."
 docker stop ${TEMP}
 docker rm ${TEMP}
-echo
+printf "DONE stopping and removing temporary container"

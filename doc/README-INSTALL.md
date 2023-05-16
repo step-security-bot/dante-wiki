@@ -52,11 +52,21 @@ In directory /container/lap/bin run:
 generate.sh
 ```
 
-Generate volume: ```volumes/full/spec/cmd.sh```
+Generate sample volume: ```volumes/full/spec/cmd.sh```
+
+## Case 1: Run on volume identical to a host directory
 
 Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
 
 Test: wget --no-check-certificate
+
+## Case 2: Run on volume as seperate docker volume
+
+Prepare the docker volume: ```volumes/bin/add-dir.sh full sample-volume /var/www/html```
+
+
+
+## Configure, patch and initialize
 
 Prepare file ```conf/customize-PRIVATE.sh``` following ```customize-SAMPLE.sh```
 
