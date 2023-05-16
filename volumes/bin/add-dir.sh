@@ -68,6 +68,6 @@ printf "DONE ls on ${MOUNT}\n"
 #/Users/cap/DOCKER/continuous-deployment-test/volumes/minimal/spec/cmd.sh
 
 printf "*** Stopping and removing temporary container..."
-docker stop ${TEMP}
-docker rm ${TEMP}
+#docker stop ${TEMP}
+#docker rm ${TEMP}
 printf "DONE stopping and removing temporary container"
