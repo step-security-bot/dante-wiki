@@ -29,7 +29,7 @@ export MOUNT=/mnt
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # source directory on host
-SRC=${DIR}/../volumes/${DIR_NAME}/content/.
+SRC=${DIR}/../../volumes/${DIR_NAME}/content/.
 
 echo ""
 
