@@ -217,7 +217,7 @@ runMWInstallScript () {
   MEDIAWIKI_DB_PASSWORD=${DB_PASS}
   MEDIAWIKI_RUN_UPDATE_SCRIPT=true
 
-  MEDIAWIKI_SITE_NAME="Dummy Site Name"
+  MEDIAWIKI_SITE_NAME=${MW_SITE_NAME}
   # MEDIAWIKI_SITE_SERVER="https://${LAP_CONTAINER}"
   # TODO: problem: LAP_CONTAINER name is not resolved in the docker host
 ################################################################# TODO: ADJUST 
