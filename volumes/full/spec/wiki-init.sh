@@ -226,7 +226,7 @@ runMWInstallScript () {
 ######
 #  MEDIAWIKI_SITE_SERVER="https://localhost"
   MEDIAWIKI_SITE_SERVER=${MW_SITE_SERVER}
-  MEDIAWIKI_SCRIPT_PATH="/${VOLUME_PATH}"
+  MEDIAWIKI_SCRIPT_PATH=${MW_SCRIPT_PATH}
   # TODO: make language variable inputable into script
   MEDIAWIKI_SITE_LANG=en
   MEDIAWIKI_ADMIN_USER=${WK_USER}
