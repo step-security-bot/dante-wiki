@@ -61,6 +61,14 @@ Build mysql image: ```containers/my-mysql/bin/generate.sh```
 
 Build a directory serving as template for the working volume for the lap container: ```volumes/full/spec/cmd.sh```
 
+
+## Patch Software
+
+1. Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
+1. Install Parsifal: ```volumes/full/spec/git-clone-dante-from-parsifal.sh```
+
+
+
 ## Case 1: Run on volume identical to a host directory
 
 Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
@@ -76,13 +84,6 @@ Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --vol s
 
 ##### Debug:
 * Look into container (on target machine): ```docker -it my-lap-container /bin/ash```
-
-
-## Patch Software
-
-Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
-
-Install Parsifal: ```volumes/full/spec/git-clone-dante-from-parsifal.sh```
 
 
 ## Configure, patch and initialize

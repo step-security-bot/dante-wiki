@@ -56,15 +56,15 @@ printf "*** cp ${SRC}  ${TEMP}:/${MOUNT}/${VOLUME_PATH}..."
 docker cp ${SRC} ${TEMP}:/${MOUNT}/${VOLUME_PATH}
 printf "DONE cp\n"
 
+printf "*** Fixing permissions on ${MOUNT}..."
+docker exec ${TEMP} chown -R apache.apache ${MOUNT}
+printf "DONE fixing permissions\n"
+
 printf "*** ls on ${MOUNT}..."
-docker exec ${TEMP} ls ${MOUNT}
+docker exec ${TEMP} ls -l ${MOUNT}
 printf "DONE ls on ${MOUNT}\n"
 
 
-#echo "now doing: docker exec ${TEMP} ${SRC}/../spec/cmd.sh "
-#echo ""
-# ${SRC}/../spec/cmd.sh
-#/Users/cap/DOCKER/continuous-deployment-test/volumes/minimal/spec/cmd.sh
 
 # printf "*** Stopping and removing temporary container..."
 #docker stop ${TEMP}
