@@ -4,7 +4,10 @@
 
 ### Paths and Proxies
 
-Here we assume that we are constructing an HTTP based server which offers access to a number of different dante wikis.
+Here we assume that we are constructing an HTTP based server which offers access to a number of different dante wikis residing on the
+same web server and distinguished from each other by the script path.
+
+
 
 
 
