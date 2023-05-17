@@ -2,11 +2,9 @@
 
 
 ## Directories ##
+* Some of our own extensions are in subdirectories of `own`.
 
-* Our own extensions are in subdirectories of `own`.
-* 
-
-## Workflow ##
+## Directory Based Workflow ##
 
 The workflow is supported using vscode tasks defined in .vscode and available in task manager. The shaded areas below reference such tasks.
 
@@ -23,7 +21,17 @@ Execute the following **vscodium tasks**:
 * **Execute** task `get dante modifications from github`
 * **Edit** directly in directory `full`
 * **Save** files & check results in browser
-* **Execute** task `push changes to dante modifications on github`
+* **Execute** task `push dante changes to github`
+* **Execute** task  `push Parsifal changes to github/dante`
+
+## Remote Based Workflow
+
+The following commands are to be executed in the target machine.
+* Get shell into container  ```dev/dshell.sh```
+* After editing Parsifal:
+** push Parsifal changes to github/dante via vscodium task
+** pull ```dev/parsifal.sh```
+
 
 
 ## References ##

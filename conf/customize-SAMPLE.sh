@@ -11,9 +11,8 @@ MYSQL_DUMP_PASSWORD=otherpassword
 
 DEFAULT_DB_VOLUME_NAME=my-mysql-data-volume
 
-MW_SITE_SERVER=https://heinrich:4443
+MW_SITE_SERVER=https://www.clemenscap.de
 
 MW_SITE_NAME="MatheWiki"
-
 
 exit 1

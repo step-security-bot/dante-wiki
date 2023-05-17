@@ -59,6 +59,8 @@ Build linux-apache-php image, based on tex image: ```containers/lap/bin/generate
 
 Build mysql image: ```containers/my-mysql/bin/generate.sh```
 
+```Clean template``` directory volumes/full/content
+
 Build a directory serving as template for the working volume for the lap container: ```volumes/full/spec/cmd.sh```
 
 
