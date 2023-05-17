@@ -225,7 +225,7 @@ runMWInstallScript () {
 ###### This should rather be a name, maybe localhost TODO: because other wise the different https things do not match
 ######
 #  MEDIAWIKI_SITE_SERVER="https://localhost"
-  MEDIAWIKI_SITE_SERVER=${MW_VIRTUAL_PATH}/${MW_SITE_SERVER}
+  MEDIAWIKI_SITE_SERVER=${MW_SITE_SERVER}
   MEDIAWIKI_SCRIPT_PATH="${MW_VIRTUAL_PATH}/${VOLUME_PATH}"
   # TODO: make language variable inputable into script
   MEDIAWIKI_SITE_LANG=en
