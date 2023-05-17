@@ -226,8 +226,7 @@ runMWInstallScript () {
 ######
 #  MEDIAWIKI_SITE_SERVER="https://localhost"
   MEDIAWIKI_SITE_SERVER=${MW_SITE_SERVER}
-#  MEDIAWIKI_SCRIPT_PATH="/${VOLUME_PATH}"
-  MEDIAWIKI_SCRIPT_PATH=""
+  MEDIAWIKI_SCRIPT_PATH="/${VOLUME_PATH}"
   # TODO: make language variable inputable into script
   MEDIAWIKI_SITE_LANG=en
   MEDIAWIKI_ADMIN_USER=${WK_USER}
@@ -482,8 +481,14 @@ do
   fi
 done
 
-printf "\n*** Fix file ownerships..."
-docker exec ${LAP_CONTAINER} /bin/sh -c "chown -R apache.apache /var/www/html"
+
+##### below runs very long probably due to parsifal cache or whatever ????
+
+#printf "\n*** Fix file ownerships..."
+#docker exec ${LAP_CONTAINER} /bin/sh -c "chown -R apache.apache /var/www/html"
+#printf "DONE fixing file ownerships\n\n"
+
+printf "*** We completed the entire wiki-init.sh script ***\n\n"
 
 }
 # endregion

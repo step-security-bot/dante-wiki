@@ -116,10 +116,10 @@ echo ""; echo "*** Attempting to start a local Chrome browser - this may fail"; 
 
 # DIR_NAME is empty and we are working on a volume
 if [ -z "$DIR_NAME" ]; then
-  open -a "Google Chrome"  http://localhost/index.html
+  open -a "Google Chrome"  http://localhost:${PORT_HTTP}/index.html
 fi
 
 if [ -z "$VOLUME_NAME" ]; then
-  open -a "Google Chrome"  http://localhost/index.html
+  open -a "Google Chrome"  http://localhost:${PORT_HTTP}/index.html
 fi
 
