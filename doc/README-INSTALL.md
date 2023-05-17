@@ -1,4 +1,17 @@
 
+## Concepts
+
+
+### Paths and Proxies
+
+Here we assume that we are constructing an HTTP based server which offers access to a number of different dante wikis.
+
+
+
+
+
+
+
 
 ## Requirements on target machine
 
