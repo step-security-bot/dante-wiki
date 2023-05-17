@@ -1,24 +1,25 @@
 
 
+## Requirements on target machine
 
-## Install Docker on the target machine
+### 1. Install Docker on the target machine
 * Follow the instructions at 
 * Add your user to the docker group: ```sudo usermod -aG docker ${USER}```
 * Log out and log in again as ${USER}
 * Check if docker is operative: ```docker run hello-world```
 
 
-## Install git and git credential manager on the target machine
+### 2. Install git and git credential manager on the target machine
 * For Linux/Debian see: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md and follow Debian instructions
 * Get a github permission token
 * Configure helper according to https://docs.github.com/en/get-started/getting-started-with-git/caching-your-github-credentials-in-git
 
 
-## Clone the github repository
+### 4. Clone the github repository
 
   ```git clone https://github.com/clecap/continuous-deployment-test ```
 
-## Build Docker Containers
+## Build Docker Images
 
 In directory /containers/ssh/bin run:
 ```
@@ -28,26 +29,13 @@ In directory /containers/ssh/bin run:
   postpare.sh
 ```
 
-In directory /containers/tex/bin run:
-```
-generate.sh
-```
+Build tex image, based on ssh image: ```containers/tex/bin/generate.sh```
 
-In directory /containers/lap/bin run:
+Build linux-apache-php image, based on tex image: ```containers/lap/bin/generate.sh```
 
-```
-generate.sh
-```
+Build mysql image: ```containers/my-mysql/bin/generate.sh```
 
-In directory /containers/my-mysql/bin run:
-
-```
-generate.sh
-```
-
-Generate linux-apache-php image, based on tex image ```/container/lap/bin/generate.sh```
-
-Generate sample volume: ```volumes/full/spec/cmd.sh```
+Build a directory serving as template for the working volume for the lap container: ```volumes/full/spec/cmd.sh```
 
 ## Case 1: Run on volume identical to a host directory
 

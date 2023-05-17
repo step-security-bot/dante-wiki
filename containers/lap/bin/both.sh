@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# starts a data base container and a lap container
-# the db container  is run on a given docker volume or on default    DB_VOLUME_NAME 
-# the lap container is run on a LOCAL_DIRECTORY or on a pre-prepared LAP_VOLUME_NAME
+# driver for starting both a data base container and a lap container
+# the db container  is run on a given docker volume or on default      DB_VOLUME_NAME 
+# the lap container is run on a LOCAL_DIRECTORY or on a pre-prepared   LAP_VOLUME_NAME
 
 # we may add an optional dump container to the data base container
 # we may add an optional dump container to the lap container
@@ -47,12 +47,7 @@ else                      ### Variant 2: We were called with parameters.
   done
 fi
 
-echo " "
-echo "Spec for DB:     ${DB_SPEC}   "
-echo "Spec fo LAP:     ${LAP_SPEC}  "
-
 # endregion
-
 
 #
 # serves files from ${MOUNT} 
@@ -65,26 +60,18 @@ export NETWORK_NAME=dante-network
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
-
 # start the DB
-echo " "
-echo "_____ Part 1: Starting DB ____"
+printf "\n\n****** Part 1: Starting DB container using specification ${DB_SPEC} "
 ${DIR}/../../my-mysql/bin/run.sh ${DB_SPEC}
-echo " "
+printf "COMPLETED PART 1\n\n"
  
 # start the LAP web server stack
-echo " "
-echo "_____ Part 2: Starting LAP ____ ${LAP_SPEC}"
+printf "\n\n****** Part 2: Starting LAP container using specification ${LAP_SPEC}"
 ${DIR}/run.sh ${LAP_SPEC}
-
-echo " "
+printf "COMPLETED PART 2\n\n"
 
 ## we must check if we should run an initialization of the system / DB !!
 #  it is possible that an initialization has already been run !!
 #    (eg as part of add-wiki.sh or similar)
 
-
 echo -e "\e[1;41m completed RUN LAP and MY-MYSQL \e[0m"
-
-
-

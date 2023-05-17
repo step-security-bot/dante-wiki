@@ -31,18 +31,17 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # source directory on host
 SRC=${DIR}/../../volumes/${DIR_NAME}/content/.
 
-echo ""
+printf "\n\n\n\n"
 
-##
-## STARTING service job running the alpine OS
-##
-echo "Starting a temporary container ${TEMP} for ${VOLUME_NAME} "
+printf "*** Ensuring that the temporary container ${TEMP} is available..."
+docker stop ${TEMP}
+docker rm ${TEMP}
+printf "DONE ensuring\n"
 
+printf "*** Starting a temporary container ${TEMP} for ${VOLUME_NAME}..."
 docker run --name ${TEMP} -d -t --volume ${VOLUME_NAME}:/${MOUNT} alpine
+printf "DONE starting\n"
 
-echo
-echo _____
-echo "Will now copy from volumes/${VOLUME_NAME}/content/. into  ${TEMP}:/${MOUNT}/${VOLUME_PATH}"
 # NOTE: we copy into the mount point at the container, not into the volume
 
 printf "*** Building the required directory path ${VOLUME_PATH}..."
@@ -67,7 +66,7 @@ printf "DONE ls on ${MOUNT}\n"
 # ${SRC}/../spec/cmd.sh
 #/Users/cap/DOCKER/continuous-deployment-test/volumes/minimal/spec/cmd.sh
 
-printf "*** Stopping and removing temporary container..."
+# printf "*** Stopping and removing temporary container..."
 #docker stop ${TEMP}
 #docker rm ${TEMP}
-printf "DONE stopping and removing temporary container"
+# printf "DONE stopping and removing temporary container"
