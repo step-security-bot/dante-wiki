@@ -54,6 +54,12 @@ Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --vol s
 * Look into container (on target machine): ```docker -it my-lap-container /bin/ash```
 
 
+## Patch Software
+
+Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
+
+Install Parsifal: ```volumes/full/spec/git-clone-dante-from-parsifal.sh```
+
 
 ## Configure, patch and initialize
 
@@ -61,14 +67,7 @@ Prepare file ```conf/customize-PRIVATE.sh``` following ```customize-SAMPLE.sh```
 
 Prepare file ```conf/mediawiki-PRIVATE.php``` following ```mediawiki-SAMPLE.php```
 
-
-Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
-
-Install Parsifal: ```volumes/full/spec/git-clone-dante-from-parsifal.sh```
-
 Initialize Wiki: ```volumes/full/spec/wiki-init.sh```
-
-
 
 ## Look into docker container
 
