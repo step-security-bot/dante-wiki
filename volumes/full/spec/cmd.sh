@@ -197,12 +197,12 @@ cleanUp
 
 makeWikiLocal 1.38 0 wiki-dir
 
-## getSkins wiki-dir
+getSkins wiki-dir
 
 ## simpleEntryPage
 
 
-getWP word
+##getWP word
 
 
 
