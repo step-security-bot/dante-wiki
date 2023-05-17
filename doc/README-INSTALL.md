@@ -41,11 +41,17 @@ Build a directory serving as template for the working volume for the lap contain
 
 Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
 
+##### Debug:
 Test: wget --no-check-certificate
 
 ## Case 2: Run on volume as seperate docker volume
 
-Prepare the docker volume: ```volumes/bin/add-dir.sh full sample-volume /html```
+Prepare the docker volume: ```volumes/bin/add-dir.sh full sample-volume /```
+
+Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --vol sample-volume```
+
+##### Debug:
+* Look into container (on target machine): ```docker -it my-lap-container /bin/ash```
 
 
 
