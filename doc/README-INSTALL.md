@@ -4,11 +4,19 @@
 
 ### Paths and Proxies
 
-Here we assume that we are constructing an HTTP based server which offers access to a number of different dante wikis residing on the
-same web server and distinguished from each other by the script path.
+We are constructing an HTTP based server which offers access to a number of different services which are
+residing on thes ame web server and distinguished from each other by a path prefix.
+
+The mapping of a domain name, possibly with a path prefix, will be done by a reverse proxy.
+
+This reverse proxy will also take care of.
 
 
+#### Example
 
+Proxy delegates https://www.clemenscap.de/dante1 to http://192.168.3.250:8080/wiki-dir
+
+192.168.3.250:8080 offers 
 
 
 
