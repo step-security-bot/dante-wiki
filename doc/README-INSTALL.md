@@ -39,18 +39,13 @@ In directory /containers/lap/bin run:
 generate.sh
 ```
 
-
 In directory /containers/my-mysql/bin run:
 
 ```
 generate.sh
 ```
 
-In directory /container/lap/bin run:
-
-```
-generate.sh
-```
+Generate linux-apache-php image, based on tex image ```/container/lap/bin/generate.sh```
 
 Generate sample volume: ```volumes/full/spec/cmd.sh```
 
@@ -62,7 +57,7 @@ Test: wget --no-check-certificate
 
 ## Case 2: Run on volume as seperate docker volume
 
-Prepare the docker volume: ```volumes/bin/add-dir.sh full sample-volume /var/www/html```
+Prepare the docker volume: ```volumes/bin/add-dir.sh full sample-volume /html```
 
 
 
