@@ -122,15 +122,16 @@ getSkins () {
   cd ${TOP}/skins
   echo "<?php " >> ${TOP}/DanteSkinsInstalled.php
 
- # Chameleon
-  echo ""; echo "*** Installing skin Chameleon"
-  wget https://github.com/ProfessionalWiki/chameleon/archive/master.zip
-  unzip -q master.zip
-  mv chameleon-master chameleon
-  rm master.zip
-  echo "wfLoadSkin( 'chameleon' );" >> ${TOP}/DanteSkinsInstalled.php
-  echo ""
-  cd ${TOP}/skins
+# Chameleon skin is broken
+# Chameleon
+#  echo ""; echo "*** Installing skin Chameleon"
+#  wget https://github.com/ProfessionalWiki/chameleon/archive/master.zip
+#  unzip -q master.zip
+#  mv chameleon-master chameleon
+#  rm master.zip
+#  echo "wfLoadSkin( 'chameleon' );" >> ${TOP}/DanteSkinsInstalled.php
+#  echo ""
+#  cd ${TOP}/skins
 
   # CologneBlue
   echo ""; echo "*** Installing skin CologneBlue"
