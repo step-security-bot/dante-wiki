@@ -57,7 +57,7 @@ docker cp ${SRC} ${TEMP}:/${MOUNT}/${VOLUME_PATH}
 printf "DONE cp\n"
 
 printf "*** Fixing permissions on ${MOUNT}..."
-docker exec ${TEMP} chown -R apache.apache ${MOUNT}
+docker exec ${TEMP} /bin/ash -c "chown -R apache.apache ${MOUNT}"
 printf "DONE fixing permissions\n"
 
 printf "*** ls on ${MOUNT}..."
