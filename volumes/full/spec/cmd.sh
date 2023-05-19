@@ -3,16 +3,11 @@
 # configurable shell script which builds up content in /volumes/full/content
 # it takes no parameters
 
-
 ### CAVE: THIS file generates static content in the volume / filesystem but does NO database related and NO dynamic stuff
 
 
 # get directory where this script resides wherever it is called from
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-
-echo "DIRECTORY: ${DIR}"
 
 
 # region cleanUp: Code to clean up this directory
@@ -75,6 +70,7 @@ makeWikiLocal () {
   cd ${TARGET}
   echo "*** Unpacking local copy $LOCAL_FILE, please wait..."
   tar --strip-components=1 -xzf ${LOCAL_FILE}
+
   echo "DONE"
 }
 # endregion
@@ -187,6 +183,19 @@ simpleEntryPage () {
 
 
 
+## Copy in some other assets
+addingAssets () {
+  TARGET=$1
+  printf "\n*** Adding assets\n"
+
+  cp ${DIR}/../../../assets/favicon.ico ${DIR}/../content/${TARGET}/favicon.ico
+
+  cp ${DIR}/../../../assets/caravaggio-180x180.png ${DIR}/../content/${TARGET}/logo.png
+
+
+
+}
+
 
 
 ##
@@ -199,6 +208,8 @@ cleanUp
 makeWikiLocal 1.38 0 wiki-dir
 
 getSkins wiki-dir
+
+addingAssets wiki-dir
 
 ## simpleEntryPage
 

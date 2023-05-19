@@ -7,7 +7,6 @@
 # The file area may be a volume or a directory.
 #
 
-
 # parameters:
 # 
 #  DB_USER    Database User          (may be standard such as user0023)
@@ -16,16 +15,51 @@
 #  WK_PASS    Wiki Admin Password
 #
 
-# region  DEFINING certain global constants
 
-# mount point of the volume or directory
-MOUNT="/var/www/html"
+### Command Line Parameters can be used to override choices made in configuration files
+#   This is particularly helpful for localhost based instances for in place edit scenarios
+#
+
+usage() {
+  echo "Usage: $0 "
+  echo "  --site-server     manual override of the site server (eg:  http://localhost:8080)"
+}
 
 # get directory where this script resides, wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+##
+## obtain some parameters from a file
+##
 source ${DIR}/../../../conf/customize-PRIVATE.sh
 
+##
+## Parse command line, where we can override some of the parameters from the file
+##
+# region
+if [ "$#" -eq 0 ]; then
+  usage
+else                      ### Variant 2: We were called with parameters.
+  while (($#)); do
+    case $1 in 
+      (--site-server) 
+        MW_SITE_SERVER="$2";;
+      (*) 
+         echo "Error parsing options - aborting" 
+         usage 
+         exit 1
+    esac
+  shift 2
+  done
+fi
+# endregion
+
+
+
+# region  DEFINING certain global constants
+
+# mount point of the volume or directory
+MOUNT="/var/www/html"
 
 # Names of the containers which we assume are running
 LAP_CONTAINER=my-lap-container
@@ -140,7 +174,9 @@ composer () {
 
   installExtensionGithub  https://github.com/wikimedia/mediawiki-extensions-MobileFrontend  MobileFrontend REL1_38
 
-
+  installExtensionGithub https://github.com/labster/HideSection/  HideSection master
+  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RandomSelection  RandomSelection REL1_38
+  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-LabeledSectionTransclusion LabeledSectionTransclusion REL1_38
 
 ### currently to be done manually 
 ###  installExtensionGithub  https://github.com/clecap/Parsifal  Parsifal  dante
@@ -313,6 +349,7 @@ addingReferenceToDante () {
 # endregion
 
 
+
 # region patchingForChameleon: Chameleon skin patch
 # Chameleon skin is autodetected in the install script, but extensions are not autodetected. However, chameleon
 # requires the Bootstrap extension. Thus, in case we have chameleon autodetected we must pathc in loading Bootstrap
@@ -375,9 +412,7 @@ initialize () {
 
   addingReferenceToDante
 
-  echo ""
-  echo "DONE   *** INITIALIZING WIKI *** "
-  echo ""
+  printf "\nDONE   *** INITIALIZING WIKI ***\n\n"
 }
 ##
 ## END of initialization function

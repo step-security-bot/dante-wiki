@@ -7,7 +7,6 @@
 # VOLUME_NAME   we are copying to VOLUME_NAME
 # VOLUME_PATH   we are copying to VOLUME_PATH in VOLUME_NAME
 
-
 # Parse the command line
 if [ "$#" -ne 3 ]; then
   echo "Usage: $0  DIR_NAME  VOLUME_NAME  VOLUME_PATH " >&2
