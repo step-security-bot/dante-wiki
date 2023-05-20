@@ -1,6 +1,8 @@
 {
   "version": "2.0.0",
   "tasks": [
+    {"label": "000 build image ssh:            ssh/bin/buildAll.sh",                         "command": "containers/ssh/bin/buildAll.sh"},
+    {"label": "000a build image tex:            tex/bin/generate.sh",                         "command": "containers/tex/bin/generate.sh"},
     {"label": "001 generate image lap:            lap/bin/generate.sh",                         "command": "containers/lap/bin/generate.sh"},
     {"label": "002 generate image my-mysql:       my-mysql/bin/generate.sh",                    "command": "containers/my-mysql/bin/generate.sh"},
     {"label": "003 generate volume full:          volumes/full/spec/cmd.sh",                    "command": "volumes/full/spec/cmd.sh"},

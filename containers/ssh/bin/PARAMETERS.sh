@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# export all variables from this shell
 set -a
 
 USERNAME=cap

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# generate a public, private key pair for logging in into the container and copy the public key into the docker context directory
+# generate docker image
 #
 
 # get directory this shell is running in
@@ -8,9 +8,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source ${DIR}/PARAMETERS.sh
 
-echo ""; echo "BUILDING image with name ${IMAGE_NAME} from docker context at ${DIR}/../src";  
-echo "COMMAND IS: docker build -t ${IMAGE_NAME} ${DIR}/../src"; echo "";
-
+printf "** BUILDING image with name ${IMAGE_NAME} from docker context at ${DIR}/../src \n"
+printf "COMMAND IS: docker build -t ${IMAGE_NAME} ${DIR}/../src \n"
 docker build -t ${IMAGE_NAME} ${DIR}/../src
-
-echo " "; echo "DONE" ; echo " "
+printf "DONE building"

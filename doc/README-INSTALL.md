@@ -45,6 +45,8 @@ Proxy delegates https://www.clemenscap.de/dante1 to http://192.168.3.250:8080/wi
 
 ## Build Docker Images
 
+Build ssh image:
+
 In directory /containers/ssh/bin run:
 ```
   prepare.sh

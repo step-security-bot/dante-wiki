@@ -7,18 +7,18 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source ${DIR}/PARAMETERS.sh
 
-echo ""; echo "Removing possible old fingerprints for localhost"
+printf "** Removing possible old fingerprints for localhost..."
 ssh-keygen -R localhost
-echo "DONE"
+printf "DONE removing\n"
 
-echo ""; echo "Copying public hostkey from container to local"
+printf "** Retrieving public hostkey from container to local..."
 docker cp ${CONTAINER_NAME}:/etc/ssh/ssh_host_rsa_key.pub .
-echo "DONE";
+printf "DONE retrieveing\n"
 
-echo ""; echo "Adding hostkey to list of known hosts at ${HOME}"
+printf "** Adding hostkey to list of known hosts at ${HOME}..."
 echo "localhost " `cat ${DIR}/ssh_host_rsa_key.pub` >>  ${HOME}/.ssh/known_hosts
-echo "DONE";
+printf "DONE adding\n"
 
-echo ""; echo "Doing local cleanup"
+printf "** Doing local cleanup..."
 rm ${DIR}/../ssh_host_rsa_key.pub
-echo "DONE";
+printf "DONE local cleanup\n"
