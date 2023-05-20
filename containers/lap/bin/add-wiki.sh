@@ -3,13 +3,6 @@
 
 
 
-
-
-
-
-
-
-
 ######## DEPRECATE THIS - should should probably be moved to wiki-init.sh in volumes or similar.
 ### BUT: NEED a way to dynamically add a wiki  # TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -272,9 +265,6 @@ echo ""
 
 
 
-
-
-
 ## route 53 stuff fehlt noch  #TODO: stuff in jedem fall auch wenn lokal und intern usw.
 
 ## Run the update.php maintenance script. If already up to date, it won't do anything, otherwise it will
@@ -284,8 +274,6 @@ echo ""
 #  echo >&2 'info: Running maintenance/update.php';
 #  php maintenance/update.php --quick --conf ./LocalSettings.php
 #fi
-
-
 
 
 ##
@@ -307,7 +295,6 @@ echo ""
 
 #php /var/www/html/maintenance/importTextFiles.php --overwrite Main_Page
 #php /var/www/html/maintenance/importTextFiles.php --overwrite Example_Page
-
 
 #PROJECT_SPACE=("Privacy_policy" "About" "General_disclaimer")
 #for p in ${!PROJECT_SPACE}; do

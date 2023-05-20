@@ -1,0 +1,39 @@
+
+
+* Areas
+
+* catus
+
+* navigation
+** {{fullurl:MediaWiki:SidebarTree|action=edit}}|Edit Sidebar Tree
+** {{fullurl:MediaWiki:Sidebar|action=edit}}|Edit Sidebar
+** {{fullurl:Main Page|}}|Main Page
+** recentchanges-url|recentchanges
+** helppage|help
+** Special:ListFiles|File List
+** {{fullurl:Special:AllPages|from=&to=&namespace=8}}|Mediawiki: List
+** {{fullurl:Special:AllPages|from=&to=&namespace=10}}|Template: List
+** {{fullurl:Special:AllPages|from=&to=&namespace=2}}|User: List
+** {{fullurl:Special:AllPages|from=&to=&namespace=12}}|Help: List
+** {{fullurl:Special:AllPages|from=&to=&namespace=4}}|Project: List
+** 
+
+* Cats
+** MediaWiki:PersistCatWindow|Persist Cat Window
+** MediaWiki:CategoryTreeOfRoot|Category Tree Root
+** MediaWiki:Tagcloudpage|Category Cloud
+** Special:Categories|Category List
+** Special:CategoryTree|Category Query
+** Special:UncategorizedPages|Uncategorized Pages
+
+
+* navigation
+** mainpage|mainpage-description
+** recentchanges-url|recentchanges
+** randompage-url|randompage
+** helppage|help-mediawiki
+* SEARCH
+* TOOLBOX
+* LANGUAGES
+
+[[Category:Boot]]

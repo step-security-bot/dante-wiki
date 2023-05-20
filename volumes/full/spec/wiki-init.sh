@@ -28,6 +28,8 @@ usage() {
 # get directory where this script resides, wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+TOP_DIR="${DIR}/../../../"
+
 ##
 ## obtain some parameters from a file
 ##
@@ -131,15 +133,11 @@ installExtensionGerrit () {
 ##
 composer () {
 
-  echo "______________________________________________"
-  echo "*** Doing COMPOSER based installations "
-  echo ""
+  printf "\n\n*** Doing COMPOSER based installations "
 
   # ensure we start with a clean DanteDynamicInstalls.php file"
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "rm -f DanteDynamicInstalls.php "
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c " echo \"<?php \" >> DanteDynamicInstalls.php "
-
-
 
 ## the following is braindamaged composer construction
 ## to find out, we must
@@ -162,6 +160,7 @@ composer () {
   echo "*** Installing some extension requirements"
 
   # Install markdown parser https://github.com/erusev/parsedown
+  printf '*** Installing markdown: docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=composer.local.json  composer require erusev/parsedown"'
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=composer.local.json  composer require erusev/parsedown"
 
   # Install markdown-extra https://michelf.ca/projects/php-markdown/extra/
@@ -237,7 +236,7 @@ FLUSH PRIVILEGES;
 MYSQLSTUFF
 
 EXIT_CODE=$?
-printf "DONE: Exit code of addDatabase generated database call: ${EXIT_CODE}"
+printf "DONE: Exit code of addDatabase generated database call: ${EXIT_CODE}\n"
 }
 # endregion
 
@@ -361,8 +360,6 @@ patchingForChameleon () {
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "sed \"s/wfLoadSkin( 'chameleon' );/wfLoadExtension( 'Bootstrap' ); wfLoadSkin( 'chameleon' ); ### patched by dante installer in wiki-init.sh /g\" LocalSettings.php > NEWLocalSettings.php"
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "cp ${MOUNT}/${VOLUME_PATH}/NEWLocalSettings.php ${MOUNT}/${VOLUME_PATH}/LocalSettings.php"
 
-
-
 }
 # endregion
 
@@ -394,23 +391,21 @@ initialize () {
   fi
   echo ""
 
- 
-  addDatabase ${DB_NAME} ${DB_USER} ${DB_PASS}
-  printf "DONE adding database and user"
+
+
+#  addDatabase ${DB_NAME} ${DB_USER} ${DB_PASS}
 
   # composer must run before the installscript so that the installscript has all the available extensions ready
   # this is necessary, since the installscript does an autoregistration of some components, for example the installed skins
-  composer 
+#  composer 
 
- ## remove to have a clean start for the install routines
-  docker exec ${LAP_CONTAINER} rm ${MOUNT}/${VOLUME_PATH}/LocalSettings.php
+  # remove to have a clean start for the install routines
+#  docker exec ${LAP_CONTAINER} rm ${MOUNT}/${VOLUME_PATH}/LocalSettings.php
 
-  runMWInstallScript
+#  runMWInstallScript
+#  addingReferenceToDante
 
-# we are not using Chameleon skin any longer due to some troubles we seem to have found with flash of unstyled stuff
-#  patchingForChameleon
-
-  addingReferenceToDante
+  initialContents ${VOLUME_PATH}
 
   printf "\nDONE   *** INITIALIZING WIKI ***\n\n"
 }
@@ -497,6 +492,67 @@ initWP () {
 
 
 
+
+
+# region initialContents
+initialContents () {
+
+TARGET=$1
+
+printf "*** Copying initial content pages from the file system to the container at target=${TARGET}\n"
+
+#
+#php /var/www/html/maintenance/importTextFiles.php --overwrite Main_Page
+#php /var/www/html/maintenance/importTextFiles.php --overwrite Example_Page
+#php /var/www/html/maintenance/importTextFiles.php --prefix "Project:"  --overwrite Privacy_policy
+#php /var/www/html/maintenance/importTextFiles.php --prefix "Project:"  --overwrite About 
+#php /var/www/html/maintenance/importTextFiles.php --prefix "Project:"  --overwrite General_disclaimer  
+#
+
+docker exec -w /${MOUNT} ${LAP_CONTAINER} mkdir -p ${TARGET}/initial-contents 
+
+cd ${TOP_DIR}/assets/initial-contents
+for i in *; do 
+  docker cp ${TOP_DIR}/assets/initial-contents/$i  ${LAP_CONTAINER}:/${MOUNT}/${TARGET}
+  docker exec ${LAP_CONTAINER} php /var/www/html/${TARGET}/maintenance/importTextFiles.php --rc -s 'Imported by wiki-init.sh' --overwrite "${MOUNT}/${TARGET}/$i"
+done;
+
+printf "DONE copying"
+
+#PROJECT_SPACE=("Privacy_policy" "About" "General_disclaimer")
+#for p in ${!PROJECT_SPACE}; do
+#  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} php maintenance/importTextFiles.php --prefix "Project:"  --overwrite $p
+#done
+
+
+docker exec ${LAP_CONTAINER} ${MOUNT}/${TARGET}/extensions/Parsifal/sh/make-formats.sh
+
+
+
+}
+
+# endregion
+
+
+##
+## Add entry to /${MOUNT}/index.html
+##
+addentry () {
+echo ""
+echo ________________
+echo ""
+echo "*** Adding ${MOUNT}/${VOLUME_PATH} mount=${MOUNT} volpath=${VOLUME_PATH}"
+echo "*   Touching ${MOUNT}/index.html"
+docker exec -w /${MOUNT} ${LAP_CONTAINER} touch ${MOUNT}/index.html
+docker exec ${LAP_CONTAINER} /bin/sh -c "echo \"<a href='/${VOLUME_PATH}/index.php'>${MOUNT}/${VOLUME_PATH}/index.php</a><br><br>\" >> ${MOUNT}/index.html"
+
+echo "...DONE"
+}
+
+
+
+
+
 # region main  MAIN function of the shell script
 ##
 main () {
@@ -528,81 +584,8 @@ printf "*** We completed the entire wiki-init.sh script ***\n\n"
 }
 # endregion
 
+
+
+
+
 main 
-
-# initWP word
-
-
-
-
-
-
-
-#### THIS probably partially into dockerfile
-# If a composer.lock and composer.json file exist, use them to install dependencies for MediaWiki and desired extensions, skins, etc.
-#if [ -e "$MEDIAWIKI_SHARED/composer.lock" -a -e "$MEDIAWIKI_SHARED/composer.json" ]; then
-#  curl -sS https://getcomposer.org/installer | php
-#  cp "$MEDIAWIKI_SHARED/composer.lock" composer.lock
-#  cp "$MEDIAWIKI_SHARED/composer.json" composer.json
-#  php composer.phar install --no-dev
-#fi
-
-# maybe restart the apache ?!?
-
-
-## route 53 stuff fehlt noch  #TODO: stuff in jedem fall auch wenn lokal und intern usw.
-
-## Run the update.php maintenance script. If already up to date, it won't do anything, otherwise it will
-## migrate the database if necessary on container startup. It also will verify the database connection is working.
-## only if MEDIAWIKI_RUN_UPDATE_SCRIPT is set
-#if [ -e "LocalSettings.php" -a "$MEDIAWIKI_RUN_UPDATE_SCRIPT" = 'true' ]; then
-#  echo >&2 'info: Running maintenance/update.php';
-#  php maintenance/update.php --quick --conf ./LocalSettings.php
-#fi
-
-
-
-
-##
-## INITIAL CONTENTS TODO: not yet active
-##
-# region
-
-# copy in some initial content pages for the wiki; will be installed by initialize.sh which will be run by bin/run.sh
-##echo -n "Copying initial content pages..."
-##docker exec -w /${MOUNT} ${TEMP} mkdir       /${MOUNT}/initial-contents
-##docker exec -w /${MOUNT} ${TEMP} chmod 755   /${MOUNT}/initial-contents
-##docker exec -w /${MOUNT} ${TEMP} cp -r initial-contents/  ${TEMP}:/${MOUNT}/initial-contents
-
-## Initialize some initial pages for the Mediawiki
-#cd /opt/initial-contents
-#source /opt/initial-contents/populate.sh
-
-#MAIN_SPACE=("Main_Page" "Example_Page")
-
-#php /var/www/html/maintenance/importTextFiles.php --overwrite Main_Page
-#php /var/www/html/maintenance/importTextFiles.php --overwrite Example_Page
-
-
-#PROJECT_SPACE=("Privacy_policy" "About" "General_disclaimer")
-#for p in ${!PROJECT_SPACE}; do
-#  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} php maintenance/importTextFiles.php --prefix "Project:"  --overwrite $p
-#done
-
-# endregion
-
-
-##
-## Add entry to /${MOUNT}/index.html
-##
-addentry () {
-echo ""
-echo ________________
-echo ""
-echo "*** Adding ${MOUNT}/${VOLUME_PATH} mount=${MOUNT} volpath=${VOLUME_PATH}"
-echo "*   Touching ${MOUNT}/index.html"
-docker exec -w /${MOUNT} ${LAP_CONTAINER} touch ${MOUNT}/index.html
-docker exec ${LAP_CONTAINER} /bin/sh -c "echo \"<a href='/${VOLUME_PATH}/index.php'>${MOUNT}/${VOLUME_PATH}/index.php</a><br><br>\" >> ${MOUNT}/index.html"
-
-echo "...DONE"
-}
