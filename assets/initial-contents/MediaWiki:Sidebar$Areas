@@ -1,0 +1,11 @@
+{{#tree: extensions=["persist"] | 
+*'''[[Main Page]]'''
+
+*Private
+*NEW
+*More
+*Stuff
+**[[Notes]]
+
+*Mediawi
+}}

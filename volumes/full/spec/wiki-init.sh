@@ -391,7 +391,9 @@ initialize () {
   fi
   echo ""
 
-
+echo ""; echo "";
+echo "************************************************************************************* ONLY PARTIAL STUFF DONE, much is commented out ";
+echo "";
 
 #  addDatabase ${DB_NAME} ${DB_USER} ${DB_PASS}
 
@@ -421,7 +423,7 @@ initialize () {
 ## CAVE: wikis currently do this differently, by traversing the file system and picking up directories   ### TODO: make this uniform !!
 
 ## TODO: turn more stuff into parameter, particularly passwords and user names
-
+# region
 initWP () {
   USERNAME=$1
 
@@ -489,32 +491,39 @@ initWP () {
 #  printf "\nDONE setting permissions\n"
 
 }
-
+# endregion
 
 
 
 
 # region initialContents
+#  Call this with one parameter (the target directory name)
 initialContents () {
 
 TARGET=$1
 
 printf "*** Copying initial content pages from the file system to the container at target=${TARGET}\n"
 
-#
-#php /var/www/html/maintenance/importTextFiles.php --overwrite Main_Page
-#php /var/www/html/maintenance/importTextFiles.php --overwrite Example_Page
-#php /var/www/html/maintenance/importTextFiles.php --prefix "Project:"  --overwrite Privacy_policy
-#php /var/www/html/maintenance/importTextFiles.php --prefix "Project:"  --overwrite About 
-#php /var/www/html/maintenance/importTextFiles.php --prefix "Project:"  --overwrite General_disclaimer  
-#
-
+printf "   Making directory ${TARGET}/initial-contents..."
 docker exec -w /${MOUNT} ${LAP_CONTAINER} mkdir -p ${TARGET}/initial-contents 
+printf "DONE\n"
 
 cd ${TOP_DIR}/assets/initial-contents
-for i in *; do 
-  docker cp ${TOP_DIR}/assets/initial-contents/$i  ${LAP_CONTAINER}:/${MOUNT}/${TARGET}
-  docker exec ${LAP_CONTAINER} php /var/www/html/${TARGET}/maintenance/importTextFiles.php --rc -s 'Imported by wiki-init.sh' --overwrite "${MOUNT}/${TARGET}/$i"
+for i in *; do
+  printf "\n\n***** Found ressource: $i\n"
+  if [[ $i =~ ([a-zA-Z0-9_:]+)\$([a-zA-Z0-9_.]+) ]]; then
+    PREFIX="${BASH_REMATCH[1]}"
+    NAME="${BASH_REMATCH[2]}"
+    echo "DOLLARMATCH   ${BASH_REMATCH}   SPLITS:   ${PREFIX}   and    ${NAME}"
+    printf "** Doing first a copy to prefix-free filename ${NAME} and then an import prefixed by ${PREFIX}\n"
+    echo "COMMAND: docker cp ${TOP_DIR}/assets/initial-contents/$i  ${LAP_CONTAINER}:/${MOUNT}/${TARGET}/${NAME}"
+    docker cp ${TOP_DIR}/assets/initial-contents/$i  ${LAP_CONTAINER}:/${MOUNT}/${TARGET}/${NAME}
+    docker exec ${LAP_CONTAINER} php /var/www/html/${TARGET}/maintenance/importTextFiles.php --rc -s "Imported by wiki-init.sh" --overwrite --prefix "${BASH_REMATCH[1]}" "${MOUNT}/${TARGET}/${BASH_REMATCH[2]}"
+  else 
+    printf "** Doing first a normal copy and then a normal import\n"
+    docker cp ${TOP_DIR}/assets/initial-contents/$i  ${LAP_CONTAINER}:/${MOUNT}/${TARGET}
+    docker exec ${LAP_CONTAINER} php /var/www/html/${TARGET}/maintenance/importTextFiles.php --rc -s 'Imported by wiki-init.sh' --overwrite "${MOUNT}/${TARGET}/$i"
+  fi
 done;
 
 printf "DONE copying"
