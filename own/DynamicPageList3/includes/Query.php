@@ -1,13 +1,18 @@
 <?php
 
-namespace DPL;
+namespace MediaWiki\Extension\DynamicPageList3;
 
 use DateInterval;
 use DateTime;
 use Exception;
+use ExtensionRegistry;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserFactory;
 use MWException;
+use PoolCounterWorkViaCallback;
+use WANObjectCache;
+use WikiMap;
+use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\IDatabase;
 
 class Query {
@@ -23,7 +28,7 @@ class Query {
 	 *
 	 * @var IDatabase
 	 */
-	private $DB;
+	private $dbr;
 
 	/**
 	 * Array of prefixed and escaped table names.
@@ -131,13 +136,6 @@ class Query {
 	private $collation = false;
 
 	/**
-	 * Number of Rows Found
-	 *
-	 * @var int
-	 */
-	private $foundRows = 0;
-
-	/**
 	 * Was the revision auxiliary table select added for firstedit and lastedit?
 	 *
 	 * @var bool
@@ -159,26 +157,28 @@ class Query {
 
 		$this->tableNames = self::getTableNames();
 
-		$this->DB = wfGetDB( DB_REPLICA, 'dpl' );
+		$this->dbr = wfGetDB( DB_REPLICA, 'dpl' );
 
 		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
 	}
 
 	/**
-	 * Start a query build.
+	 * Start a query build. Returns found rows.
 	 *
 	 * @param bool $calcRows
-	 * @return mixed Mediawiki Result Object or False
+	 * @param ?int &$foundRows
+	 * @param string $profilingContext Used to see the origin of a query in the profiling
+	 * @return array|bool
 	 */
-	public function buildAndSelect( $calcRows = false ) {
-		global $wgNonincludableNamespaces;
+	public function buildAndSelect( bool $calcRows = false, ?int &$foundRows = null, $profilingContext = '' ) {
+		global $wgNonincludableNamespaces, $wgDebugDumpSql;
 
 		$options = [];
 
 		$parameters = $this->parameters->getAllParameters();
 		foreach ( $parameters as $parameter => $option ) {
-			$function = "_" . $parameter;
-			// Some parameters do not modifiy the query so we check if the function to modify the query exists first.
+			$function = '_' . $parameter;
+			// Some parameters do not modify the query so we check if the function to modify the query exists first.
 			$success = true;
 			if ( method_exists( $this, $function ) ) {
 				$success = $this->$function( $option );
@@ -196,9 +196,9 @@ class Query {
 			$this->addTable( 'page', $this->tableNames['page'] );
 			$this->addSelect(
 				[
-					'page_namespace'	=> $this->tableNames['page'] . '.page_namespace',
-					'page_id'			=> $this->tableNames['page'] . '.page_id',
-					'page_title'		=> $this->tableNames['page'] . '.page_title'
+					'page_namespace' => $this->tableNames['page'] . '.page_namespace',
+					'page_id' => $this->tableNames['page'] . '.page_id',
+					'page_title' => $this->tableNames['page'] . '.page_title'
 				]
 			);
 		}
@@ -223,23 +223,61 @@ class Query {
 		}
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ) > 0 ) {
-				// $sSqlSelectFrom = $sSqlCl_to.'ic.il_to, '.$sSqlSelPage."ic.il_to AS sortkey".' FROM '.$this->tableNames['imagelinks'].' AS ic';
-				$tables = [
-					'ic'	=> 'imagelinks'
-				];
-			} else {
-				// $sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct ".$sSqlCl_to.'pl_namespace, pl_title'.$sSqlSelPage.$sSqlSortkey.' FROM '.$this->tableNames['pagelinks'];
+			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ?? [] ) > 0 ) {
 				$this->addSelect(
 					[
-						'pl_namespace',
-						'pl_title'
+						'il_to',
 					]
 				);
 
 				$tables = [
-					'pagelinks'
+					'ic' => 'imagelinks'
 				];
+			} else {
+				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
+					$this->addSelect(
+						[
+							'page_namespace',
+							'page_id',
+							'page_title',
+							'pl_namespace',
+							'pl_title',
+						]
+					);
+
+					$this->addWhere(
+						[
+							'page_namespace' => null,
+						]
+					);
+
+					$this->addJoin(
+						'page',
+						[
+							'LEFT JOIN',
+							[
+								'page_namespace = pl_namespace',
+								'page_title = pl_title',
+							],
+						]
+					);
+
+					$tables = [
+						'page',
+						'pagelinks',
+					];
+				} else {
+					$this->addSelect(
+						[
+							'pl_namespace',
+							'pl_title',
+						]
+					);
+
+					$tables = [
+						'pagelinks',
+					];
+				}
 			}
 		} else {
 			$tables = $this->tables;
@@ -249,13 +287,13 @@ class Query {
 			if ( count( $this->orderBy ) ) {
 				$options['ORDER BY'] = $this->orderBy;
 				foreach ( $options['ORDER BY'] as $key => $value ) {
-					$options['ORDER BY'][$key] .= " " . $this->direction;
+					$options['ORDER BY'][$key] .= ' ' . $this->direction;
 				}
 			}
 		}
 		if ( $this->parameters->getParameter( 'goal' ) == 'categories' ) {
 			$categoriesGoal = true;
-			$select = [
+			$fields = [
 				$this->tableNames['page'] . '.page_id'
 			];
 
@@ -270,15 +308,15 @@ class Query {
 			}
 
 			$categoriesGoal = false;
-			$select = $this->select;
+			$fields = $this->select;
 		}
 
 		$queryError = false;
 		try {
 			if ( $categoriesGoal ) {
-				$result = $this->DB->select(
+				$res = $this->dbr->select(
 					$tables,
-					$select,
+					$fields,
 					$this->where,
 					__METHOD__,
 					$options,
@@ -287,11 +325,11 @@ class Query {
 
 				$pageIds = [];
 
-				while ( $row = $result->fetchRow() ) {
-					$pageIds[] = $row['page_id'];
+				foreach ( $res as $row ) {
+					$pageIds[] = $row->page_id;
 				}
 
-				$sql = $this->DB->selectSQLText(
+				$query = $this->dbr->selectSQLText(
 					[
 						'clgoal' => 'categorylinks'
 					],
@@ -307,9 +345,9 @@ class Query {
 					]
 				);
 			} else {
-				$sql = $this->DB->selectSQLText(
+				$query = $this->dbr->selectSQLText(
 					$tables,
-					$select,
+					$fields,
 					$this->where,
 					__METHOD__,
 					$options,
@@ -317,33 +355,74 @@ class Query {
 				);
 			}
 
-			$this->sqlQuery = $sql;
-			$result = $this->DB->query( $sql, __METHOD__ );
-
-			if ( $calcRows ) {
-				$calcRowsResult = $this->DB->query( 'SELECT FOUND_ROWS() AS rowcount', __METHOD__ );
-				$total = $this->DB->fetchRow( $calcRowsResult );
-				$this->foundRows = intval( $total['rowcount'] );
-				$this->DB->freeResult( $calcRowsResult );
+			if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
+				$this->sqlQuery = $query;
 			}
 		} catch ( Exception $e ) {
-			$queryError = true;
+			throw new MWException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', Hooks::getVersion(), $this->dbr->lastError() )->text() );
 		}
 
-		if ( $queryError || $result === false ) {
-			throw new MWException( __METHOD__ . ": " . wfMessage( 'dpl_query_error', DynamicPageListHooks::getVersion(), $this->DB->lastError() )->text() );
+		// Partially taken from intersection
+		$queryCacheTime = Config::getSetting( 'queryCacheTime' );
+		$maxQueryTime = Config::getSetting( 'maxQueryTime' );
+
+		if ( $maxQueryTime ) {
+			$options['MAX_EXECUTION_TIME'] = $maxQueryTime;
 		}
 
-		return $result;
-	}
+		$qname = __METHOD__;
+		if ( !empty( $profilingContext ) ) {
+			$qname .= ' - ' . $profilingContext;
+		}
+		$where = $this->where;
+		$join = $this->join;
+		$db = $this->dbr;
 
-	/**
-	 * Return the number of found rows.
-	 *
-	 * @return int
-	 */
-	public function getFoundRows() {
-		return $this->foundRows;
+		$doQuery = static function () use ( $qname, $db, $tables, $fields, $where, $options, $join, $calcRows, &$foundRows ) {
+			$res = $db->select( $tables, $fields, $where, $qname, $options, $join );
+
+			if ( $calcRows ) {
+				$calcRowsResult = $db->query( 'SELECT FOUND_ROWS() AS count;', $qname );
+				$total = $calcRowsResult->fetchRow();
+
+				$foundRows = (int)$total['count'];
+			}
+
+			return iterator_to_array( $res );
+		};
+
+		$poolCounterKey = 'nowait:dpl3-query:' . WikiMap::getCurrentWikiId();
+		$worker = new PoolCounterWorkViaCallback( 'DPL3', $poolCounterKey, [
+			'doWork' => $doQuery,
+		] );
+
+		if ( $queryCacheTime <= 0 ) {
+			return $worker->execute();
+		}
+
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+
+		return $cache->getWithSetCallback(
+			$cache->makeKey( 'DPL3Query', hash( 'sha256', $query ) ),
+			$queryCacheTime,
+			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $db ){
+				$setOpts += Database::getCacheSetOptions( $db );
+				$res = $worker->execute();
+				if ( $res === false ) {
+					// Do not cache errors.
+					$ttl = WANObjectCache::TTL_UNCACHEABLE;
+					// If we have oldVal, prefer it to error
+					if ( is_array( $oldVal ) ) {
+						return $oldVal;
+					}
+				}
+				return $res;
+			},
+			[
+				'lowTTL' => min( $cache::TTL_MINUTE, floor( $queryCacheTime * 0.75 ) ),
+				'pcTTL' => min( $cache::TTL_PROC_LONG, $queryCacheTime )
+			]
+		);
 	}
 
 	/**
@@ -361,7 +440,7 @@ class Query {
 	 * @return array
 	 */
 	public static function getTableNames() {
-		$DB = wfGetDB( DB_REPLICA, 'dpl' );
+		$dbr = wfGetDB( DB_REPLICA, 'dpl' );
 
 		$tables = [
 			'categorylinks',
@@ -379,7 +458,7 @@ class Query {
 
 		$tableNames = [];
 		foreach ( $tables as $table ) {
-			$tableNames[$table] = $DB->tableName( $table );
+			$tableNames[$table] = $dbr->tableName( $table );
 		}
 
 		return $tableNames;
@@ -402,7 +481,7 @@ class Query {
 		}
 
 		if ( !isset( $this->tables[$alias] ) ) {
-			$this->tables[$alias] = $this->DB->tableName( $table );
+			$this->tables[$alias] = $this->dbr->tableName( $table );
 
 			return true;
 		} else {
@@ -457,10 +536,10 @@ class Query {
 
 		if ( is_array( $where ) ) {
 			foreach ( $where as $field => $values ) {
-				$this->where[] = $field . ( count( $values ) > 1 ? ' NOT IN(' . $this->DB->makeList( $values ) . ')' : ' != ' . $this->DB->addQuotes( current( $values ) ) );
+				$this->where[] = $field . ( count( $values ) > 1 ? ' NOT IN(' . $this->dbr->makeList( $values ) . ')' : ' != ' . $this->dbr->addQuotes( current( $values ) ) );
 			}
 		} else {
-			throw new MWException( __METHOD__ . ': An invalid not where clause was passed.' );
+			throw new MWException( __METHOD__ . ': An invalid NOT WHERE clause was passed.' );
 		}
 
 		return true;
@@ -507,7 +586,7 @@ class Query {
 	 */
 	public function addGroupBy( $groupBy ) {
 		if ( empty( $groupBy ) ) {
-			throw new MWException( __METHOD__ . ': An empty group by clause was passed.' );
+			throw new MWException( __METHOD__ . ': An empty GROUP BY clause was passed.' );
 		}
 
 		$this->groupBy[] = $groupBy;
@@ -523,7 +602,7 @@ class Query {
 	 */
 	public function addOrderBy( $orderBy ) {
 		if ( empty( $orderBy ) ) {
-			throw new MWException( __METHOD__ . ': An empty order by clause was passed.' );
+			throw new MWException( __METHOD__ . ': An empty ORDER BY clause was passed.' );
 		}
 
 		$this->orderBy[] = $orderBy;
@@ -540,11 +619,11 @@ class Query {
 	 */
 	public function addJoin( $tableAlias, $joinConditions ) {
 		if ( empty( $tableAlias ) || empty( $joinConditions ) ) {
-			throw new MWException( __METHOD__ . ': An empty join clause was passed.' );
+			throw new MWException( __METHOD__ . ': An empty JOIN clause was passed.' );
 		}
 
 		if ( isset( $this->join[$tableAlias] ) ) {
-			throw new MWException( __METHOD__ . ': Attempted to overwrite existing join clause.' );
+			throw new MWException( __METHOD__ . ': Attempted to overwrite existing JOIN clause.' );
 		}
 
 		$this->join[$tableAlias] = $joinConditions;
@@ -552,6 +631,9 @@ class Query {
 		return true;
 	}
 
+	/**
+	 * @param array $joins
+	 */
 	public function addJoins( array $joins ) {
 		foreach ( $joins as $alias => $conds ) {
 			$this->addJoin( $alias, $conds );
@@ -628,7 +710,7 @@ class Query {
 	 * @return array
 	 */
 	public static function getSubcategories( $categoryName, $depth = 1 ) {
-		$DB = wfGetDB( DB_REPLICA, 'dpl' );
+		$dbr = wfGetDB( DB_REPLICA, 'dpl' );
 
 		if ( $depth > 2 ) {
 			// Hard constrain depth because lots of recursion is bad.
@@ -636,32 +718,32 @@ class Query {
 		}
 
 		$categories = [];
-		$result = $DB->select(
+		$res = $dbr->select(
 			[ 'page', 'categorylinks' ],
 			[ 'page_title' ],
 			[
-				'page_namespace'		=> intval( NS_CATEGORY ),
-				'categorylinks.cl_to'	=> str_replace( ' ', '_', $categoryName )
+				'page_namespace' => intval( NS_CATEGORY ),
+				'cl_to' => str_replace( ' ', '_', $categoryName )
 			],
 			__METHOD__,
 			[ 'DISTINCT' ],
 			[
 				'categorylinks' => [
 					'INNER JOIN',
-					'page.page_id = categorylinks.cl_from'
+					'page_id = cl_from'
 				]
 			]
 		);
 
-		while ( $row = $result->fetchRow() ) {
-			$categories[] = $row['page_title'];
+		foreach ( $res as $row ) {
+			$categories[] = $row->page_title;
 			if ( $depth > 1 ) {
-				$categories = array_merge( $categories, self::getSubcategories( $row['page_title'], $depth - 1 ) );
+				$categories = array_merge( $categories, self::getSubcategories( $row->page_title, $depth - 1 ) );
 			}
 		}
 
 		$categories = array_unique( $categories );
-		$DB->freeResult( $result );
+		$res->free();
 
 		return $categories;
 	}
@@ -706,7 +788,7 @@ class Query {
 		}
 
 		if ( is_numeric( $timestamp ) ) {
-			return $this->DB->addQuotes( $timestamp );
+			return $this->dbr->addQuotes( $timestamp );
 		}
 
 		return 0;
@@ -764,12 +846,10 @@ class Query {
 	private function _addcontribution( $option ) {
 		$this->addTable( 'recentchanges', 'rc' );
 
-		$field = 'rc.rc_actor';
-
-				$this->addSelect(
+		$this->addSelect(
 			[
-				'contribution'	=> 'SUM(ABS(rc.rc_new_len - rc.rc_old_len))',
-				'contributor'	=> $field
+				'contribution' => 'SUM(ABS(rc.rc_new_len - rc.rc_old_len))',
+				'contributor' => 'rc.rc_actor'
 			]
 		);
 
@@ -807,7 +887,7 @@ class Query {
 		// @TODO: This should be programmatically determining which categorylink table to use instead of assuming the first one.
 		$this->addSelect(
 			[
-				'cl_timestamp'	=> "DATE_FORMAT(cl1.cl_timestamp, '%Y%m%d%H%i%s')"
+				'cl_timestamp' => "DATE_FORMAT(cl1.cl_timestamp, '%Y%m%d%H%i%s')"
 			]
 		);
 	}
@@ -839,11 +919,11 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _addpagecounter( $option ) {
-		if ( class_exists( "\\HitCounters\\Hooks" ) ) {
+		if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
 			$this->addTable( 'hit_counter', 'hit_counter' );
 			$this->addSelect(
 				[
-					"page_counter"	=> "hit_counter.page_counter"
+					'page_counter' => 'hit_counter.page_counter'
 				]
 			);
 
@@ -851,8 +931,8 @@ class Query {
 				$this->addJoin(
 					'hit_counter',
 					[
-						"LEFT JOIN",
-						"hit_counter.page_id = " . $this->tableNames['page'] . '.page_id'
+						'LEFT JOIN',
+						'hit_counter.page_id = ' . $this->tableNames['page'] . '.page_id'
 					]
 				);
 			}
@@ -867,7 +947,7 @@ class Query {
 	private function _addpagesize( $option ) {
 		$this->addSelect(
 			[
-				"page_len"	=> "{$this->tableNames['page']}.page_len"
+				'page_len' => "{$this->tableNames['page']}.page_len"
 			]
 		);
 	}
@@ -880,7 +960,7 @@ class Query {
 	private function _addpagetoucheddate( $option ) {
 		$this->addSelect(
 			[
-				"page_touched"	=> "{$this->tableNames['page']}.page_touched"
+				'page_touched' => "{$this->tableNames['page']}.page_touched"
 			]
 		);
 	}
@@ -957,7 +1037,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _articlecategory( $option ) {
-		$this->addWhere( "{$this->tableNames['page']}.page_title IN (SELECT p2.page_title FROM {$this->tableNames['page']} p2 INNER JOIN {$this->tableNames['categorylinks']} clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = " . $this->DB->addQuotes( $option ) . ") WHERE p2.page_namespace = 0)" );
+		$this->addWhere( "{$this->tableNames['page']}.page_title IN (SELECT p2.page_title FROM {$this->tableNames['page']} p2 INNER JOIN {$this->tableNames['categorylinks']} clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = " . $this->dbr->addQuotes( $option ) . ") WHERE p2.page_namespace = 0)" );
 	}
 
 	/**
@@ -1000,7 +1080,7 @@ class Query {
 								$tableAlias,
 								[
 									'INNER JOIN',
-									"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND $tableAlias.cl_to {$comparisonType} " . $this->DB->addQuotes( str_replace( ' ', '_', $category ) )
+									"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND $tableAlias.cl_to {$comparisonType} " . $this->dbr->addQuotes( str_replace( ' ', '_', $category ) )
 								]
 							);
 						}
@@ -1013,7 +1093,7 @@ class Query {
 						$ors = [];
 
 						foreach ( $categories as $category ) {
-							$ors[] = "{$tableAlias}.cl_to {$comparisonType} " . $this->DB->addQuotes( str_replace( ' ', '_', $category ) );
+							$ors[] = "{$tableAlias}.cl_to {$comparisonType} " . $this->dbr->addQuotes( str_replace( ' ', '_', $category ) );
 						}
 
 						$joinOn .= implode( " {$operatorType} ", $ors );
@@ -1050,13 +1130,13 @@ class Query {
 					$tableAlias,
 					[
 						'LEFT OUTER JOIN',
-						"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND {$tableAlias}.cl_to {$operatorType}" . $this->DB->addQuotes( str_replace( ' ', '_', $category ) )
+						"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND {$tableAlias}.cl_to {$operatorType}" . $this->dbr->addQuotes( str_replace( ' ', '_', $category ) )
 					]
 				);
 
 				$this->addWhere(
 					[
-						"{$tableAlias}.cl_to"	=> null
+						"{$tableAlias}.cl_to" => null
 					]
 				);
 			}
@@ -1075,7 +1155,7 @@ class Query {
 
 		$this->addWhere(
 			[
-				$this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = creation_rev_actor.revactor_actor',
+				$this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = creation_rev_actor.revactor_actor',
 				'creation_rev_actor.revactor_page = page_id',
 				'creation_rev.rev_parent_id = 0'
 			]
@@ -1113,14 +1193,14 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'] . '.page_id = rev.revactor_page',
-				'rev.revactor_timestamp >= ' . $this->DB->addQuotes( $option )
+				'rev.revactor_timestamp >= ' . $this->dbr->addQuotes( $option )
 			]
 		);
 
 		$this->addWhere(
 			[
 				$this->tableNames['page'] . '.page_id = rev.revactor_page',
-				'rev.revactor_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM ' . $this->tableNames['revision'] . ' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= ' . $this->convertTimestamp( $option ) . ')'
+				'rev.revactor_timestamp = (SELECT MIN(rev_aux_snc.revactor_timestamp) FROM ' . $this->tableNames['revision_actor_temp'] . ' AS rev_aux_snc WHERE rev_aux_snc.revactor_page=rev.revactor_page AND rev_aux_snc.revactor_timestamp >= ' . $this->convertTimestamp( $option ) . ')'
 			]
 		);
 	}
@@ -1157,7 +1237,7 @@ class Query {
 		$this->addTable( 'imagelinks', 'ic' );
 		$this->addSelect(
 			[
-				'sortkey'	=> 'ic.il_to'
+				'sortkey' => 'ic.il_to'
 			]
 		);
 
@@ -1172,9 +1252,9 @@ class Query {
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "LOWER(CAST(ic.il_from AS char) = LOWER(" . $this->DB->addQuotes( $link->getArticleID() ) . ')';
+					$ors[] = 'LOWER(CAST(ic.il_from AS char) = LOWER(' . $this->dbr->addQuotes( $link->getArticleID() ) . ')';
 				} else {
-					$ors[] = "ic.il_from = " . $this->DB->addQuotes( $link->getArticleID() );
+					$ors[] = 'ic.il_from = ' . $this->dbr->addQuotes( $link->getArticleID() );
 				}
 			}
 		}
@@ -1198,7 +1278,7 @@ class Query {
 		$this->addTable( 'imagelinks', 'il' );
 		$this->addSelect(
 			[
-				'image_sel_title'	=> 'il.il_to'
+				'image_sel_title' => 'il.il_to'
 			]
 		);
 
@@ -1208,9 +1288,9 @@ class Query {
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "LOWER(CAST(il.il_to AS char))=LOWER(" . $this->DB->addQuotes( $link->getDbKey() ) . ')';
+					$ors[] = 'LOWER(CAST(il.il_to AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 				} else {
-					$ors[] = "il.il_to=" . $this->DB->addQuotes( $link->getDbKey() );
+					$ors[] = 'il.il_to = ' . $this->dbr->addQuotes( $link->getDBkey() );
 				}
 			}
 		}
@@ -1225,7 +1305,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _lastmodifiedby( $option ) {
-		$this->addWhere( $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = (SELECT revactor_actor FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id ORDER BY ' . $this->tableNames['revision_actor_temp'] . '.revactor_timestamp DESC LIMIT 1)' );
+		$this->addWhere( $this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = (SELECT revactor_actor FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id ORDER BY ' . $this->tableNames['revision_actor_temp'] . '.revactor_timestamp DESC LIMIT 1)' );
 	}
 
 	/**
@@ -1248,7 +1328,7 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'] . '.page_id = rev.revactor_page',
-				'rev.revactor_timestamp = (SELECT MAX(rev_aux_bef.rev_timestamp) FROM ' . $this->tableNames['revision'] . ' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < ' . $this->convertTimestamp( $option ) . ')'
+				'rev.revactor_timestamp = (SELECT MAX(rev_aux_bef.revactor_timestamp) FROM ' . $this->tableNames['revision_actor_temp'] . ' AS rev_aux_bef WHERE rev_aux_bef.revactor_page=rev.revactor_page AND rev_aux_bef.revactor_timestamp < ' . $this->convertTimestamp( $option ) . ')'
 			]
 		);
 	}
@@ -1324,16 +1404,16 @@ class Query {
 
 					foreach ( $linkGroup as $link ) {
 						$_or = '(pl.pl_namespace=' . intval( $link->getNamespace() );
-						if ( strpos( $link->getDbKey(), '%' ) >= 0 ) {
+						if ( strpos( $link->getDBkey(), '%' ) >= 0 ) {
 							$operator = 'LIKE';
 						} else {
 							$operator = '=';
 						}
 
 						if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-							$_or .= ' AND LOWER(CAST(pl.pl_title AS char)) ' . $operator . ' LOWER(' . $this->DB->addQuotes( $link->getDbKey() ) . ')';
+							$_or .= ' AND LOWER(CAST(pl.pl_title AS char)) ' . $operator . ' LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 						} else {
-							$_or .= ' AND pl.pl_title ' . $operator . ' ' . $this->DB->addQuotes( $link->getDbKey() );
+							$_or .= ' AND pl.pl_title ' . $operator . ' ' . $this->dbr->addQuotes( $link->getDBkey() );
 						}
 
 						$_or .= ')';
@@ -1347,16 +1427,16 @@ class Query {
 
 					foreach ( $linkGroup as $link ) {
 						$_or = '(' . $this->tableNames['pagelinks'] . '.pl_namespace=' . intval( $link->getNamespace() );
-						if ( strpos( $link->getDbKey(), '%' ) >= 0 ) {
+						if ( strpos( $link->getDBkey(), '%' ) >= 0 ) {
 							$operator = 'LIKE';
 						} else {
 							$operator = '=';
 						}
 
 						if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-							$_or .= ' AND LOWER(CAST(' . $this->tableNames['pagelinks'] . '.pl_title AS char)) ' . $operator . ' LOWER(' . $this->DB->addQuotes( $link->getDbKey() ) . ')';
+							$_or .= ' AND LOWER(CAST(' . $this->tableNames['pagelinks'] . '.pl_title AS char)) ' . $operator . ' LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 						} else {
-							$_or .= ' AND ' . $this->tableNames['pagelinks'] . '.pl_title ' . $operator . ' ' . $this->DB->addQuotes( $link->getDbKey() );
+							$_or .= ' AND ' . $this->tableNames['pagelinks'] . '.pl_title ' . $operator . ' ' . $this->dbr->addQuotes( $link->getDBkey() );
 						}
 
 						$_or .= ')';
@@ -1424,16 +1504,16 @@ class Query {
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
 					$_or = '(' . $this->tableNames['pagelinks'] . '.pl_namespace=' . intval( $link->getNamespace() );
-					if ( strpos( $link->getDbKey(), '%' ) >= 0 ) {
+					if ( strpos( $link->getDBkey(), '%' ) >= 0 ) {
 						$operator = 'LIKE';
 					} else {
 						$operator = '=';
 					}
 
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or .= ' AND LOWER(CAST(' . $this->tableNames['pagelinks'] . '.pl_title AS char)) ' . $operator . ' LOWER(' . $this->DB->addQuotes( $link->getDbKey() ) . '))';
+						$_or .= ' AND LOWER(CAST(' . $this->tableNames['pagelinks'] . '.pl_title AS char)) ' . $operator . ' LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
 					} else {
-						$_or .= ' AND ' . $this->tableNames['pagelinks'] . '.pl_title ' . $operator . ' ' . $this->DB->addQuotes( $link->getDbKey() ) . ')';
+						$_or .= ' AND ' . $this->tableNames['pagelinks'] . '.pl_title ' . $operator . ' ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 					}
 
 					$ors[] = $_or;
@@ -1466,7 +1546,7 @@ class Query {
 					$ors = [];
 
 					foreach ( $linkGroup as $link ) {
-						$ors[] = 'el.el_to LIKE ' . $this->DB->addQuotes( $link );
+						$ors[] = 'el.el_to LIKE ' . $this->dbr->addQuotes( $link );
 					}
 
 					$where .= '(' . implode( ' OR ', $ors ) . ')';
@@ -1475,7 +1555,7 @@ class Query {
 					$ors = [];
 
 					foreach ( $linkGroup as $link ) {
-						$ors[] = $this->tableNames['externallinks'] . '.el_to LIKE ' . $this->DB->addQuotes( $link );
+						$ors[] = $this->tableNames['externallinks'] . '.el_to LIKE ' . $this->dbr->addQuotes( $link );
 					}
 
 					$where .= '(' . implode( ' OR ', $ors ) . ')';
@@ -1503,8 +1583,8 @@ class Query {
 	 */
 	private function _minoredits( $option ) {
 		if ( isset( $option ) && $option == 'exclude' ) {
-			$this->addTable( 'revision', 'rev' );
-			$this->addWhere( 'rev.rev_minor_edit = 0' );
+			$this->addTable( 'revision', 'revision' );
+			$this->addWhere( 'revision.rev_minor_edit = 0' );
 		}
 	}
 
@@ -1525,7 +1605,7 @@ class Query {
 	private function _modifiedby( $option ) {
 		$this->addTable( 'revision_actor_temp', 'change_rev' );
 
-		$this->addWhere( $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = change_rev.revactor_actor AND change_rev.revactor_page = page_id' );
+		$this->addWhere( $this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = change_rev.revactor_actor AND change_rev.revactor_page = page_id' );
 	}
 
 	/**
@@ -1538,13 +1618,13 @@ class Query {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
 				$this->addWhere(
 					[
-						"{$this->tableNames['pagelinks']}.pl_namespace"	=> $option
+						"{$this->tableNames['pagelinks']}.pl_namespace" => $option
 					]
 				);
 			} else {
 				$this->addWhere(
 					[
-						"{$this->tableNames['page']}.page_namespace"	=> $option
+						"{$this->tableNames['page']}.page_namespace" => $option
 					]
 				);
 			}
@@ -1560,7 +1640,7 @@ class Query {
 		$this->addTable( 'revision', 'no_creation_rev' );
 		$this->addTable( 'revision_actor_temp', 'no_creation_rev_actor' );
 
-		$this->addWhere( $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' != no_creation_rev_actor.revactor_actor AND no_creation_rev_actor.revactor_page = page_id AND no_creation_rev.rev_parent_id = 0' );
+		$this->addWhere( $this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' != no_creation_rev_actor.revactor_actor AND no_creation_rev_actor.revactor_page = page_id AND no_creation_rev.rev_parent_id = 0' );
 	}
 
 	/**
@@ -1569,7 +1649,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _notlastmodifiedby( $option ) {
-		$this->addWhere( $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' != (SELECT revactor_actor FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id ORDER BY ' . $this->tableNames['revision_actor_temp'] . '.revactor_timestamp DESC LIMIT 1)' );
+		$this->addWhere( $this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' != (SELECT revactor_actor FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id ORDER BY ' . $this->tableNames['revision_actor_temp'] . '.revactor_timestamp DESC LIMIT 1)' );
 	}
 
 	/**
@@ -1578,7 +1658,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _notmodifiedby( $option ) {
-		$this->addWhere( 'NOT EXISTS (SELECT 1 FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id AND ' . $this->tableNames['revision_actor_temp'] . '.revactor_actor = ' . $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' LIMIT 1)' );
+		$this->addWhere( 'NOT EXISTS (SELECT 1 FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id AND ' . $this->tableNames['revision_actor_temp'] . '.revactor_actor = ' . $this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' LIMIT 1)' );
 	}
 
 	/**
@@ -1648,13 +1728,13 @@ class Query {
 	private function _ordercollation( $option ) {
 		$option = mb_strtolower( $option );
 
-		$results = $this->DB->query( 'SHOW CHARACTER SET' );
-		if ( !$results ) {
+		$res = $this->dbr->query( 'SHOW CHARACTER SET' );
+		if ( !$res ) {
 			return false;
 		}
 
-		while ( $row = $results->fetchRow() ) {
-			if ( $option == $row['Default collation'] ) {
+		foreach ( $res as $row ) {
+			if ( $option == $row->{'Default collation'} ) {
 				$this->setCollation( $option );
 				break;
 			}
@@ -1667,6 +1747,7 @@ class Query {
 	 * Set SQL for 'ordermethod' parameter.
 	 *
 	 * @param mixed $option
+	 * @return bool
 	 */
 	private function _ordermethod( $option ) {
 		if ( $this->parameters->getParameter( 'goal' ) == 'categories' ) {
@@ -1683,7 +1764,7 @@ class Query {
 		$_namespaceIdToText = "CASE {$this->tableNames['page']}.page_namespace";
 
 		foreach ( $namespaces as $id => $name ) {
-			$_namespaceIdToText .= ' WHEN ' . intval( $id ) . " THEN " . $this->DB->addQuotes( $name . ':' );
+			$_namespaceIdToText .= ' WHEN ' . intval( $id ) . ' THEN ' . $this->dbr->addQuotes( $name . ':' );
 		}
 
 		$_namespaceIdToText .= ' END';
@@ -1708,15 +1789,15 @@ class Query {
 					$this->addJoin(
 						$_clTableAlias,
 						[
-							"LEFT OUTER JOIN",
-							"page_id = cl_head.cl_from"
+							'LEFT OUTER JOIN',
+							'page_id = cl_head.cl_from'
 						]
 					);
 
 					if ( is_array( $this->parameters->getParameter( 'catheadings' ) ) && count( $this->parameters->getParameter( 'catheadings' ) ) ) {
 						$this->addWhere(
 							[
-								"cl_head.cl_to"	=> $this->parameters->getParameter( 'catheadings' )
+								'cl_head.cl_to' => $this->parameters->getParameter( 'catheadings' )
 							]
 						);
 					}
@@ -1734,7 +1815,7 @@ class Query {
 					$this->addOrderBy( 'cl1.cl_timestamp' );
 					break;
 				case 'counter':
-					if ( class_exists( "\\HitCounters\\Hooks" ) ) {
+					if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
 						// If the "addpagecounter" parameter was not used the table and join need to be added now.
 						if ( !array_key_exists( 'hit_counter', $this->tables ) ) {
 							$this->addTable( 'hit_counter', 'hit_counter' );
@@ -1743,8 +1824,8 @@ class Query {
 								$this->addJoin(
 									'hit_counter',
 									[
-										"LEFT JOIN",
-										"hit_counter.page_id = " . $this->tableNames['page'] . '.page_id'
+										'LEFT JOIN',
+										'hit_counter.page_id = ' . $this->tableNames['page'] . '.page_id'
 									]
 								);
 							}
@@ -1775,11 +1856,11 @@ class Query {
 					$this->revisionAuxWhereAdded = true;
 					break;
 				case 'lastedit':
-					if ( DynamicPageListHooks::isLikeIntersection() ) {
+					if ( Hooks::isLikeIntersection() ) {
 						$this->addOrderBy( 'page_touched' );
 						$this->addSelect(
 							[
-								"page_touched" => "{$this->tableNames['page']}.page_touched"
+								'page_touched' => "{$this->tableNames['page']}.page_touched"
 							]
 						);
 					} else {
@@ -1811,7 +1892,7 @@ class Query {
 					$this->addOrderBy( 'page_touched' );
 					$this->addSelect(
 						[
-							"page_touched" => "{$this->tableNames['page']}.page_touched"
+							'page_touched' => "{$this->tableNames['page']}.page_touched"
 						]
 					);
 					break;
@@ -1852,9 +1933,9 @@ class Query {
 					break;
 				case 'titlewithoutnamespace':
 					if ( $this->parameters->getParameter( 'openreferences' ) ) {
-						$this->addOrderBy( "pl_title" );
+						$this->addOrderBy( 'pl_title' );
 					} else {
-						$this->addOrderBy( "page_title" );
+						$this->addOrderBy( 'page_title' );
 					}
 
 					$this->addSelect(
@@ -1903,14 +1984,14 @@ class Query {
 				case 'only':
 					$this->addWhere(
 						[
-							$this->tableNames['page'] . ".page_is_redirect"	=> 1
+							$this->tableNames['page'] . '.page_is_redirect' => 1
 						]
 					);
 					break;
 				case 'exclude':
 					$this->addWhere(
 						[
-							$this->tableNames['page'] . ".page_is_redirect"	=> 0
+							$this->tableNames['page'] . '.page_is_redirect' => 0
 						]
 					);
 					break;
@@ -1930,8 +2011,8 @@ class Query {
 				$this->addJoin(
 					'flaggedpages',
 					[
-						"LEFT JOIN",
-						"page_id = fp_page_id"
+						'LEFT JOIN',
+						'page_id = fp_page_id'
 					]
 				);
 			}
@@ -1947,7 +2028,7 @@ class Query {
 				case 'exclude':
 					$this->addWhere(
 						[
-							'fp_stable'	=> null
+							'fp_stable' => null
 						]
 					);
 					break;
@@ -1967,8 +2048,8 @@ class Query {
 				$this->addJoin(
 					'flaggedpages',
 					[
-						"LEFT JOIN",
-						"page_id = fp_page_id"
+						'LEFT JOIN',
+						'page_id = fp_page_id'
 					]
 				);
 			}
@@ -1996,15 +2077,15 @@ class Query {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(pl_title AS char)) {$comparisonType}" . strtolower( $this->DB->addQuotes( $title ) );
+						$_or = "LOWER(CAST(pl_title AS char)) {$comparisonType}" . strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "pl_title {$comparisonType} " . $this->DB->addQuotes( $title );
+						$_or = "pl_title {$comparisonType} " . $this->dbr->addQuotes( $title );
 					}
 				} else {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST({$this->tableNames['page']}.page_title AS char)) {$comparisonType}" . strtolower( $this->DB->addQuotes( $title ) );
+						$_or = "LOWER(CAST({$this->tableNames['page']}.page_title AS char)) {$comparisonType}" . strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "{$this->tableNames['page']}.page_title {$comparisonType}" . $this->DB->addQuotes( $title );
+						$_or = "{$this->tableNames['page']}.page_title {$comparisonType}" . $this->dbr->addQuotes( $title );
 					}
 				}
 
@@ -2028,15 +2109,15 @@ class Query {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(pl_title AS char)) {$comparisonType}" . strtolower( $this->DB->addQuotes( $title ) );
+						$_or = "LOWER(CAST(pl_title AS char)) {$comparisonType}" . strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "pl_title {$comparisonType} " . $this->DB->addQuotes( $title );
+						$_or = "pl_title {$comparisonType} " . $this->dbr->addQuotes( $title );
 					}
 				} else {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST({$this->tableNames['page']}.page_title AS char)) {$comparisonType}" . strtolower( $this->DB->addQuotes( $title ) );
+						$_or = "LOWER(CAST({$this->tableNames['page']}.page_title AS char)) {$comparisonType}" . strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "{$this->tableNames['page']}.page_title {$comparisonType}" . $this->DB->addQuotes( $title );
+						$_or = "{$this->tableNames['page']}.page_title {$comparisonType}" . $this->dbr->addQuotes( $title );
 					}
 				}
 
@@ -2054,23 +2135,25 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _titlegt( $option ) {
-		$where = '(';
-
-		if ( substr( $option, 0, 2 ) == '=_' ) {
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$where .= 'pl_title >= ' . $this->DB->addQuotes( substr( $option, 2 ) );
-			} else {
-				$where .= $this->tableNames['page'] . '.page_title >= ' . $this->DB->addQuotes( substr( $option, 2 ) );
-			}
-		} else {
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$where .= 'pl_title > ' . $this->DB->addQuotes( $option );
-			} else {
-				$where .= $this->tableNames['page'] . '.page_title > ' . $this->DB->addQuotes( $option );
-			}
+		$operator = '>';
+		if ( substr( $option, 0, 2 ) === '=_' ) {
+			$option = substr( $option, 2 );
+			$operator = '>=';
 		}
 
-		$where .= ')';
+		if ( $option === '' ) {
+			$operator = 'LIKE';
+			$option = '%';
+		}
+
+		$option = $this->dbr->addQuotes( $option );
+
+		if ( $this->parameters->getParameter( 'openreferences' ) ) {
+			$where = "(pl_title {$operator} {$option})";
+		} else {
+			$where = "({$this->tableNames['page']}.page_title {$operator} {$option})";
+		}
+
 		$this->addWhere( $where );
 	}
 
@@ -2080,23 +2163,25 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _titlelt( $option ) {
-		$where = '(';
-
-		if ( substr( $option, 0, 2 ) == '=_' ) {
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$where .= 'pl_title <= ' . $this->DB->addQuotes( substr( $option, 2 ) );
-			} else {
-				$where .= $this->tableNames['page'] . '.page_title <= ' . $this->DB->addQuotes( substr( $option, 2 ) );
-			}
-		} else {
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$where .= 'pl_title < ' . $this->DB->addQuotes( $option );
-			} else {
-				$where .= $this->tableNames['page'] . '.page_title < ' . $this->DB->addQuotes( $option );
-			}
+		$operator = '<';
+		if ( substr( $option, 0, 2 ) === '=_' ) {
+			$option = substr( $option, 2 );
+			$operator = '<=';
 		}
 
-		$where .= ')';
+		if ( $option === '' ) {
+			$operator = 'LIKE';
+			$option = '%';
+		}
+
+		$option = $this->dbr->addQuotes( $option );
+
+		if ( $this->parameters->getParameter( 'openreferences' ) ) {
+			$where = "(pl_title {$operator} {$option})";
+		} else {
+			$where = "({$this->tableNames['page']}.page_title {$operator} {$option})";
+		}
+
 		$this->addWhere( $where );
 	}
 
@@ -2151,9 +2236,9 @@ class Query {
 				$_or = '(tl.tl_namespace=' . intval( $link->getNamespace() );
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= " AND LOWER(CAST(tl.tl_title AS char))=LOWER(" . $this->DB->addQuotes( $link->getDbKey() ) . '))';
+					$_or .= ' AND LOWER(CAST(tl.tl_title AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
 				} else {
-					$_or .= " AND tl.tl_title=" . $this->DB->addQuotes( $link->getDbKey() ) . ')';
+					$_or .= ' AND tl.tl_title = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 				}
 
 				$ors[] = $_or;
@@ -2179,9 +2264,9 @@ class Query {
 					$_or = '(' . $this->tableNames['templatelinks'] . '.tl_namespace=' . intval( $link->getNamespace() );
 
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or .= ' AND LOWER(CAST(' . $this->tableNames['templatelinks'] . '.tl_title AS char))=LOWER(' . $this->DB->addQuotes( $link->getDbKey() ) . '))';
+						$_or .= ' AND LOWER(CAST(' . $this->tableNames['templatelinks'] . '.tl_title AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
 					} else {
-						$_or .= ' AND ' . $this->tableNames['templatelinks'] . '.tl_title=' . $this->DB->addQuotes( $link->getDbKey() ) . ')';
+						$_or .= ' AND ' . $this->tableNames['templatelinks'] . '.tl_title = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 					}
 					$ors[] = $_or;
 				}

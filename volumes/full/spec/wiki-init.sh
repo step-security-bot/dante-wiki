@@ -174,7 +174,15 @@ composer () {
   installExtensionGithub https://github.com/labster/HideSection/  HideSection master
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RandomSelection  RandomSelection REL1_38
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-LabeledSectionTransclusion LabeledSectionTransclusion REL1_38
-  installExtensionGithub https://github.com/Universal-Omega/DynamicPageList3 DynamicPageList3 REL1_38
+
+#  installExtensionGithub https://github.com/Universal-Omega/DynamicPageList3 DynamicPageList3 REL1_38
+
+#  installExtensionGithub https://github.com/clecap/DynamicPageList3 DynamicPageList3 master
+
+  docker cp $TOP_DIR/own/DynamicPageList3/ ${LAP_CONTAINER}:/${MOUNT}/${VOLUME_PATH}/extensions
+
+
+
 
 ### currently to be done manually 
 ###  installExtensionGithub  https://github.com/clecap/Parsifal  Parsifal  dante
@@ -398,7 +406,7 @@ echo "";
 
   # composer must run before the installscript so that the installscript has all the available extensions ready
   # this is necessary, since the installscript does an autoregistration of some components, for example the installed skins
-#  composer 
+  composer 
 
   # remove to have a clean start for the install routines
 #  docker exec ${LAP_CONTAINER} rm ${MOUNT}/${VOLUME_PATH}/LocalSettings.php
@@ -406,7 +414,7 @@ echo "";
 #  runMWInstallScript
 #  addingReferenceToDante
 
-  initialContents ${VOLUME_PATH}
+#  initialContents ${VOLUME_PATH}
 
   printf "\nDONE   *** INITIALIZING WIKI ***\n\n"
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace DPL;
+namespace MediaWiki\Extension\DynamicPageList3\Tests;
 
 use DOMDocument;
 use DOMXPath;
@@ -8,14 +8,14 @@ use ImportStreamSource;
 use MediaWiki\Auth\AuthManager;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserFactory;
-use MediaWikiTestCase;
+use MediaWikiIntegrationTestCase;
 use ParserOptions;
 use RequestContext;
 use Title;
 use User;
 use WikiImporter;
 
-abstract class DPLIntegrationTestCase extends MediaWikiTestCase {
+abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	/**
 	 * Guard condition to ensure we only import seed data once per test suite run.
 	 * @var bool
@@ -67,7 +67,8 @@ abstract class DPLIntegrationTestCase extends MediaWikiTestCase {
 			$user = $this->newUserFromName( $userName );
 
 			if ( !$user || $user->idForName() !== 0 ) {
-				return; // sanity
+				// sanity
+				return;
 			}
 
 			$status = $authManager->autoCreateUser(
@@ -110,6 +111,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiTestCase {
 	/**
 	 * Convenience function to return the list of page titles matching a DPL query
 	 * @param array $params - DPL invocation parameters
+	 * @param string $format
 	 * @return string[]
 	 */
 	protected function getDPLQueryResults( array $params, string $format = '%PAGE%' ): array {
@@ -138,7 +140,9 @@ abstract class DPLIntegrationTestCase extends MediaWikiTestCase {
 		$invocation = '<dpl>';
 
 		foreach ( $params as $paramName => $values ) {
-			$values = (array)$values; // multi-value parameters
+			// multi-value parameters
+			$values = (array)$values;
+
 			foreach ( $values as $value ) {
 				$invocation .= "$paramName=$value\n";
 			}

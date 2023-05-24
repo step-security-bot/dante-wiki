@@ -1,6 +1,6 @@
 <?php
 
-namespace DPL;
+namespace MediaWiki\Extension\DynamicPageList3;
 
 use MWException;
 
@@ -932,10 +932,10 @@ class ParametersData {
 		 * openreferences =...
 		 * - no: excludes pages which do not exist (=default)
 		 * - yes: includes pages which do not exist -- this conflicts with some other options
+		 * - missing: includes only pages which do not exist -- this conflicts with some other options
 		 */
 		'openreferences' => [
-			'default' => false,
-			'boolean' => true
+			'default' => false
 		],
 		/**
 		 * redirects =...
@@ -1123,7 +1123,7 @@ class ParametersData {
 	public function __construct() {
 		$this->setRichness( Config::getSetting( 'functionalRichness' ) );
 
-		if ( DynamicPageListHooks::isLikeIntersection() ) {
+		if ( Hooks::isLikeIntersection() ) {
 			$this->data['ordermethod'] = [
 				'default' => 'categoryadd',
 				'values' => [

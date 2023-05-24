@@ -712,3 +712,78 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 # Version 3.3.7
 * Revert helper classes added in version 3.3.6, as it had negative performance impact
 * Fix adduser
+
+# Version 3.3.8
+* Cleanup
+* Fix allowUnlimitedResults + fix tests on 1.38.0+
+* Fix getSubcategories
+* Fix up a few minor things which were annoying
+* Remove unused 'dpl_description' i18n message
+* Restore MediaWiki 1.35 compatibility
+* Fix path to `Maintenance.php`
+* Fix second param to `preg_match`
+
+# Version 3.3.9
+* Add support for `openreferences=missing`
+* Fix usage of scroll and order in the same query
+* Minor documentation updates
+
+# Version 3.3.10
+* Fix MessagesDirs to prevent mergeMessageFileList issue
+
+# Version 3.4.0
+* Improved overall query performance
+* Added ability to set maximum query time using `maxQueryTime` configuration
+* Added support for query cache using `queryCacheTime` configuration
+* Added pool counter support to limit query concurrency
+* Fixed all `MediaWiki.ControlStructures.AssignmentInControlStructures.AssignmentInControlStructures` PHPCS violations and enabled it
+* Renamed `Query::$DB` property to `Query::$dbr`
+* Removed unused `Parse::$DB` property
+* Minor wording and markdown changes to README
+* Use Extension:DynamicPageList3 in logger
+* Added new pool counter error message to logger
+* Added missing error message for FATAL_NOTPROTECTED (dpl_log_24)
+* Added missing error message for FATAL_SQLBUILDERROR (dpl_log_25)
+* Additional minor wording and capitalisation changes to i18n messages
+* Re-namespaced all classes under `MediaWiki\Extension\DynamicPageList3` and uses `AutoloadNamespaces`
+* Replaced usages of global `$wgLang`, `$wgOut`, and `$wgRequest`
+* Bumped MediaWiki requirement to 1.35.3
+* Migrate extension.json to `manifest_version` 2
+* Some additional minor cleanup
+
+# Version 3.4.1
+* Used `StringUtils::isValidPCRERegex()` for checking valid regex
+* Fixed query error due to not adding quotes to '%'
+* Removed unused `Hooks::removeSectionMarkers()` function
+* Removed some unused code
+* Removed unimplimented configuration options (`behavingLikeIntersection` and `fixedCategories`)
+* Removed unused parameters from `UpdateArticle::editTemplateCall()`
+* Added `$wgDplSettings['alwaysCacheResults']` to README
+* Properly implemented `titlemaxlength` and `includemaxlength`
+
+# Version 3.4.2
+* Fixed `minoredits` parameter
+
+# Version 3.4.3
+* Fixed all `PEAR.Functions.ValidDefaultValue.NotAtEnd` PHPCS violations and enabled it
+* Used `quibble-with-apache` entrypoint in CI
+* Fixed `$wgDplSettings['allowUnlimitedResults']`
+* Fixed behavior for `$wgDplSettings['maxResultCount']`
+
+# Version 3.4.4
+* Fixed all `MediaWiki.WhiteSpace.SpaceBeforeSingleLineComment.NewLineComment` PHPCS violations and enabled it
+* Used `ExtensionRegistry::getInstance()->isLoaded()` for checking HitCounters
+* Fixed all `MediaWiki.Commenting.MissingCovers.MissingCovers` PHPCS violations and enabled it
+* Fixed `openreferences=missing` count
+* Only set `Query::sqlQuery` if used for debug
+* Fixed `firstrevisionsince` and `lastrevisionbefore` parameters
+
+# Version 3.4.5
+* Fixed `%TOTALPAGES%` usage
+
+# Version 3.4.6
+* Removed unused `LST::noop()` function
+* Fixed all `MediaWiki.Commenting.FunctionComment` PHPCS violations and enabled it
+* Updated CreateTemplate to mention DPL3, not DPL
+* Used database update maintenance script for creating VIEW
+* Added additional isset check for mTemplatePath
