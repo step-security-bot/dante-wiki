@@ -12,7 +12,7 @@
     {"label": "005a clone Parsifal/dante github:   ",    "command": "volumes/full/spec/git-clone-dante-from-parsifal.sh"},
     {"label": "006 initialize wiki:               volumes/full/spec/wiki-init.sh",              "command": "volumes/full/spec/wiki-init.sh", "args": ["--site-server", "http://localhost:8080"]},
     {"label": "007 push dante changes to github   volumes/full/spec/git-push-to-delta",         "command": "volumes/full/spec/git-push-to-delta.sh"} ,
-    {"label": "007a push Parsifal changes to github/dante   ",         "command": "volumes/full/spec/git-push-to-parsifal.sh"} ,
+    {"label": "007a push Parsifal changes to github/Parsifal dante branch ",         "command": "volumes/full/spec/git-push-to-parsifal.sh"} ,
     {"label": "MUCH (changed volume build process)",         "command": "containers/lap/bin/much.sh"} ,
     {"label": "color",         "command": "/Users/cap/DOCKER/dantewiki/ab.sh"}  
   ]
