@@ -15,11 +15,10 @@
 #  WK_PASS    Wiki Admin Password
 #
 
-
+# region  *** USAGE and COMMAND LINE PARSING
 ### Command Line Parameters can be used to override choices made in configuration files
 #   This is particularly helpful for localhost based instances for in place edit scenarios
 #
-
 usage() {
   echo "Usage: $0 "
   echo "  --site-server     manual override of the site server (eg:  http://localhost:8080)"
@@ -38,7 +37,6 @@ source ${DIR}/../../../conf/customize-PRIVATE.sh
 ##
 ## Parse command line, where we can override some of the parameters from the file
 ##
-# region
 if [ "$#" -eq 0 ]; then
   usage
 else                      ### Variant 2: We were called with parameters.
@@ -176,6 +174,7 @@ composer () {
   installExtensionGithub https://github.com/labster/HideSection/  HideSection master
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RandomSelection  RandomSelection REL1_38
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-LabeledSectionTransclusion LabeledSectionTransclusion REL1_38
+  installExtensionGithub https://github.com/Universal-Omega/DynamicPageList3 DynamicPageList3 REL1_38
 
 ### currently to be done manually 
 ###  installExtensionGithub  https://github.com/clecap/Parsifal  Parsifal  dante
