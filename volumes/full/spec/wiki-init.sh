@@ -175,10 +175,18 @@ composer () {
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RandomSelection  RandomSelection REL1_38
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-LabeledSectionTransclusion LabeledSectionTransclusion REL1_38
 
+  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RevisionSlider RevisionSlider REL1_38
+
+
+## looks like this is broken.
+##  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-WikEdDiff WikEdDiff REL1_38
+
+
 #  installExtensionGithub https://github.com/Universal-Omega/DynamicPageList3 DynamicPageList3 REL1_38
 
 #  installExtensionGithub https://github.com/clecap/DynamicPageList3 DynamicPageList3 master
 
+###### HACK: see README-DynamicPageList3-Clemens.md in TOPD_DIR/own for more details.
   docker cp $TOP_DIR/own/DynamicPageList3/ ${LAP_CONTAINER}:/${MOUNT}/${VOLUME_PATH}/extensions
 
 
