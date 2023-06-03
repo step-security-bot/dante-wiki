@@ -37,6 +37,7 @@ source ${DIR}/../../../conf/customize-PRIVATE.sh
 ##
 ## Parse command line, where we can override some of the parameters from the file
 ##
+parseCommandLine () {
 if [ "$#" -eq 0 ]; then    # We were called with zero parameters: show usage
   usage
 else                       # We were called with parameters.
@@ -55,6 +56,7 @@ else                       # We were called with parameters.
   shift 2
   done
 fi
+}
 # endregion
 
 
@@ -593,6 +595,8 @@ main () {
 WIKIS="${DIR}/../content/wiki-"*
 
 printf "\n*** List of wiki subdirectories found: ${WIKIS} \n"
+
+  parseCommandLine 
 
 for WIKI in ${WIKIS}
 do
