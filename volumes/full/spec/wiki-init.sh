@@ -37,17 +37,20 @@ source ${DIR}/../../../conf/customize-PRIVATE.sh
 ##
 ## Parse command line, where we can override some of the parameters from the file
 ##
-if [ "$#" -eq 0 ]; then
+if [ "$#" -eq 0 ]; then    # We were called with zero parameters: show usage
   usage
-else                      ### Variant 2: We were called with parameters.
+else                       # We were called with parameters.
   while (($#)); do
     case $1 in 
       (--site-server) 
         MW_SITE_SERVER="$2";;
+      (--composerInstall)
+        composerInstall 
       (*) 
          echo "Error parsing options - aborting" 
          usage 
          exit 1
+        
     esac
   shift 2
   done
@@ -126,10 +129,10 @@ installExtensionGerrit () {
 # endregion
 
 
-# region  composer:  Doing COMPOSER based installations
-##
-##
-composer () {
+# region  composerInstall:  Doing COMPOSER based installations
+#
+#
+composerInstall () {
 
   printf "\n\n*** Doing COMPOSER based installations "
 
@@ -381,56 +384,6 @@ patchingForChameleon () {
 
 
 
-# region  initialize    Initialization function for an individual WIKI
-##
-initialize () {
-  DB_USER=$1
-
-  DB_NAME="DB_${DB_USER}"
-  DB_PASS="password-$1"
-  WK_USER=$1
-  WK_PASS="password-$1"
-# TODO: must offer possibility to use a real password
-  echo "*** Initialize sees DB_USER=${DB_USER}, DB_PASS=${DB_PASS}, WK_USER=${WK_USER}, WK_PASS=${WK_PASS}"
-
-  # path to the wiki inside of the volume
-  VOLUME_PATH="wiki-${DB_USER}"
-
-  echo "** Are we a wiki directory?"
-  docker exec ${LAP_CONTAINER} ls ${MOUNT}/${VOLUME_PATH}/index.php
-  if [ "$?" == "0" ]; then
-    echo "* Found index.php, probably yes, continuing"
-  else 
-    echo "* NO *** EXITING initializer for ${VOLUME_PATH}"
-    return
-  fi
-  echo ""
-
-echo ""; echo "";
-echo "************************************************************************************* ONLY PARTIAL STUFF DONE, much is commented out ";
-echo "";
-
-#  addDatabase ${DB_NAME} ${DB_USER} ${DB_PASS}
-
-  # composer must run before the installscript so that the installscript has all the available extensions ready
-  # this is necessary, since the installscript does an autoregistration of some components, for example the installed skins
-  composer 
-
-  # remove to have a clean start for the install routines
-#  docker exec ${LAP_CONTAINER} rm ${MOUNT}/${VOLUME_PATH}/LocalSettings.php
-
-#  runMWInstallScript
-#  addingReferenceToDante
-
-  initialContents ${VOLUME_PATH}
-
-  printf "\nDONE   *** INITIALIZING WIKI ***\n\n"
-}
-##
-## END of initialization function
-##
-# endregion
-
 
 
 
@@ -572,6 +525,63 @@ docker exec ${LAP_CONTAINER} /bin/sh -c "echo \"<a href='/${VOLUME_PATH}/index.p
 
 echo "...DONE"
 }
+
+
+
+
+
+
+
+
+# region  initialize    Initialization function for an individual WIKI
+#
+#
+initialize () {
+  DB_USER=$1
+
+  DB_NAME="DB_${DB_USER}"
+  DB_PASS="password-$1"
+  WK_USER=$1
+  WK_PASS="password-$1"
+# TODO: must offer possibility to use a real password
+  echo "*** Initialize sees DB_USER=${DB_USER}, DB_PASS=${DB_PASS}, WK_USER=${WK_USER}, WK_PASS=${WK_PASS}"
+
+  # path to the wiki inside of the volume
+  VOLUME_PATH="wiki-${DB_USER}"
+
+  echo "** Are we a wiki directory?"
+  docker exec ${LAP_CONTAINER} ls ${MOUNT}/${VOLUME_PATH}/index.php
+  if [ "$?" == "0" ]; then
+    echo "* Found index.php, probably yes, continuing"
+  else 
+    echo "* NO *** EXITING initializer for ${VOLUME_PATH}"
+    return
+  fi
+  echo ""
+
+echo ""; echo "";
+echo "************************************************************************************* ONLY PARTIAL STUFF DONE, much is commented out ";
+echo "";
+
+  addDatabase ${DB_NAME} ${DB_USER} ${DB_PASS}
+
+  # composer must run before the installscript so that the installscript has all the available extensions ready
+  # this is necessary, since the installscript does an autoregistration of some components, for example the installed skins
+  composerInstall
+
+  # remove to have a clean start for the install routines
+  docker exec ${LAP_CONTAINER} rm ${MOUNT}/${VOLUME_PATH}/LocalSettings.php
+
+  runMWInstallScript
+  addingReferenceToDante
+  initialContents ${VOLUME_PATH}
+  printf "\nDONE   *** INITIALIZING WIKI ***\n\n"
+}
+##
+## END of initialization function
+##
+# endregion
+
 
 
 
