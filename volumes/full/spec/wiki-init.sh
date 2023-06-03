@@ -171,7 +171,7 @@ composer () {
 
   installExtensionGithub  https://github.com/wikimedia/mediawiki-extensions-MobileFrontend  MobileFrontend REL1_38
 
-  installExtensionGithub https://github.com/labster/HideSection/  HideSection master
+  installExtensionGithub https://github.com/labster/HideSection/ HideSection master
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RandomSelection  RandomSelection REL1_38
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-LabeledSectionTransclusion LabeledSectionTransclusion REL1_38
 
@@ -422,7 +422,7 @@ echo "";
 #  runMWInstallScript
 #  addingReferenceToDante
 
-#  initialContents ${VOLUME_PATH}
+  initialContents ${VOLUME_PATH}
 
   printf "\nDONE   *** INITIALIZING WIKI ***\n\n"
 }

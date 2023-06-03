@@ -19,27 +19,22 @@ Proxy delegates https://www.clemenscap.de/dante1 to http://192.168.3.250:8080/wi
 192.168.3.250:8080 offers 
 
 
+## Prepare Requirements on Target Machine
 
-
-
-
-
-## Requirements on target machine
-
-### 1. Install Docker on the target machine
+### 1. Install Docker on Target Machine
 * Follow the instructions at 
 * Add your user to the docker group: ```sudo usermod -aG docker ${USER}```
 * Log out and log in again as ${USER}
 * Check if docker is operative: ```docker run hello-world```
 
 
-### 2. Install git and git credential manager on the target machine
+### 2. Install git and git credential manager on Target Machine
 * For Linux/Debian see: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md and follow Debian instructions
 * Get a github permission token
 * Configure helper according to https://docs.github.com/en/get-started/getting-started-with-git/caching-your-github-credentials-in-git
 
 
-### 4. Clone the github repository
+### 3. Clone the github repository
 
   ```git clone https://github.com/clecap/continuous-deployment-test ```
 
@@ -64,6 +59,9 @@ Build mysql image: ```containers/my-mysql/bin/generate.sh```
 
 ## Build Volume Template
 
+```bin/build-volume-template.sh```
+
+This consists of:
 1. Clean the template directory: ```rm -Rf volumes/full/content```
 2. Build a directory serving as template for the working volume for the lap container: ```volumes/full/spec/cmd.sh```
 3. Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
@@ -111,12 +109,16 @@ login-key is to be found on /containers/ssh of the machine on which the containe
 ssh:
 tex:
 
-
 my-mysql:  ssh -i login-key cap@IP-OF-MY-MYSQL-CONTAINER‚
 
-
-
 wget --no-check-certificate
+
+## Clean
+
+docker stop my-lap-container
+docker rm my-lap-container
+docker stop my-mysql
+docker rm my-mysql
 
 
 
