@@ -61,26 +61,24 @@ Build linux-apache-php image, based on tex image: ```containers/lap/bin/generate
 
 Build mysql image: ```containers/my-mysql/bin/generate.sh```
 
-```Clean template``` directory volumes/full/content
 
-Build a directory serving as template for the working volume for the lap container: ```volumes/full/spec/cmd.sh```
+## Build Volume Template
 
+1. Clean the template directory: ```rm -Rf volumes/full/content```
+2. Build a directory serving as template for the working volume for the lap container: ```volumes/full/spec/cmd.sh```
+3. Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
+4. Install Parsifal: ```volumes/full/spec/git-clone-dante-from-parsifal.sh```
 
-## Patch Software
+## Run
 
-1. Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
-1. Install Parsifal: ```volumes/full/spec/git-clone-dante-from-parsifal.sh```
-
-
-
-## Case 1: Run on volume identical to a host directory
+### Case 1: Run on volume identical to a host directory
 
 Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
 
 ##### Debug:
 Test: wget --no-check-certificate
 
-## Case 2: Run on volume as seperate docker volume
+### Case 2: Run on volume as seperate docker volume
 
 Prepare the docker volume: ```volumes/bin/add-dir.sh full sample-volume /```
 
