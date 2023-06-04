@@ -60,7 +60,6 @@ fi
 # endregion
 
 
-
 # region  DEFINING certain global constants
 
 # mount point of the volume or directory
@@ -71,6 +70,23 @@ LAP_CONTAINER=my-lap-container
 DB_CONTAINER=my-mysql
 
 # endregion
+
+# region ABORT ERROR HANDLER
+abort()
+{
+    echo >&2 '
+***************
+*** ABORTED ***
+***************
+'
+    echo "An error occurred. Exiting..." >&2
+    exit 1
+}
+
+
+
+
+
 
 
 # region  composerPermissions ()  
@@ -592,6 +608,12 @@ echo "";
 # region main  MAIN function of the shell script
 ##
 main () {
+
+
+trap 'abort' 0
+set -e
+
+
 WIKIS="${DIR}/../content/wiki-"*
 
 printf "\n*** List of wiki subdirectories found: ${WIKIS} \n"
@@ -617,6 +639,9 @@ done
 #docker exec ${LAP_CONTAINER} /bin/sh -c "chown -R apache.apache /var/www/html"
 #printf "DONE fixing file ownerships\n\n"
 
+
+
+trap : 0
 printf "*** We completed the entire wiki-init.sh script ***\n\n"
 
 }

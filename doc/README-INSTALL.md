@@ -86,11 +86,11 @@ Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --vol s
 * Look into container (on target machine): ```docker -it my-lap-container /bin/ash```
 
 
-## Configure, patch and initialize
+## Configure
+1. Prepare file ```conf/customize-PRIVATE.sh``` following ```customize-SAMPLE.sh```
+2. Prepare file ```conf/mediawiki-PRIVATE.php``` following ```mediawiki-SAMPLE.php```
 
-Prepare file ```conf/customize-PRIVATE.sh``` following ```customize-SAMPLE.sh```
-
-Prepare file ```conf/mediawiki-PRIVATE.php``` following ```mediawiki-SAMPLE.php```
+## Initialize
 
 Initialize Wiki: ```volumes/full/spec/wiki-init.sh```
 

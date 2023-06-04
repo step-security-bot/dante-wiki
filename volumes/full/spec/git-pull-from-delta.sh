@@ -22,7 +22,7 @@ printf "DONE removing git directory\n\n"
 
 # initialize a git there
 printf "*** Initializing a git..."
-git init
+git init --initial-branch=master
 git config --local core.excludesfile ${DIR}/../../spec/.gitignore
 printf "DONE initializing a git\n\n"
 
@@ -44,7 +44,4 @@ cp ${DIR}/../../../conf/mediawiki-PRIVATE.php ${WIKI}
 
 echo ""; echo "DONE"; echo ""
 
-
 printf "\033[31m completed GIT PULL from DELTA \033[0m \n"
-
-
