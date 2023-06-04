@@ -61,12 +61,12 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
 # start the DB
-printf "\n\n****** Part 1: Starting DB container using specification ${DB_SPEC} "
+printf "\n\n****** Part 1: Starting DB container using specification ${DB_SPEC}\n"
 ${DIR}/../../my-mysql/bin/run.sh ${DB_SPEC}
 printf "COMPLETED PART 1\n\n"
  
 # start the LAP web server stack
-printf "\n\n****** Part 2: Starting LAP container using specification ${LAP_SPEC}"
+printf "\n\n****** Part 2: Starting LAP container using specification ${LAP_SPEC}\n"
 ${DIR}/run.sh ${LAP_SPEC}
 printf "COMPLETED PART 2\n\n"
 

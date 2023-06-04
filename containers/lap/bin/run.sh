@@ -72,7 +72,7 @@ HOST_NAME=my-lap-container
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo "*** Cleaning up existing ressources"
-echo -n "* Stopping container: "
+echo -n "*    Stopping container: "
 # -t 0 since the LAP can be shot down quickly
 docker container stop ${CONTAINER_NAME} -t 0
 
@@ -112,14 +112,15 @@ docker run -d --name ${CONTAINER_NAME} \
   ${IMAGE_NAME}  `
 
 
-echo ""; echo "*** Attempting to start a local Chrome browser - this may fail"; echo "";
+if [ `uname` == "Darwin"]; then 
+  echo ""; echo "*** Attempting to start a local Chrome browser - this may fail"; echo "";
 
-# DIR_NAME is empty and we are working on a volume
-if [ -z "$DIR_NAME" ]; then
-  open -a "Google Chrome"  http://localhost:${PORT_HTTP}/index.html
+  # DIR_NAME is empty and we are working on a volume
+  if [ -z "$DIR_NAME" ]; then
+    open -a "Google Chrome"  http://localhost:${PORT_HTTP}/index.html
+  fi
+
+  if [ -z "$VOLUME_NAME" ]; then
+    open -a "Google Chrome"  http://localhost:${PORT_HTTP}/index.html
+  fi
 fi
-
-if [ -z "$VOLUME_NAME" ]; then
-  open -a "Google Chrome"  http://localhost:${PORT_HTTP}/index.html
-fi
-

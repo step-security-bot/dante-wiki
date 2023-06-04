@@ -90,7 +90,7 @@ printf "*** ls on ${MOUNT}..."
 docker exec ${TEMP} ls -l ${MOUNT}
 printf "DONE ls on ${MOUNT}\n\n"
 
-printf "*** Stopping and removing temporary container..."
+printf "*** Stopping and removing temporary container...\n"
 docker stop ${TEMP}
 docker rm ${TEMP}
 printf "DONE stopping and removing temporary container\n\n"
