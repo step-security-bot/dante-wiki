@@ -83,7 +83,10 @@ This comprises the following steps:
 * Look into container (on target machine): ```docker exec -it my-lap-container /bin/ash```
 
 
-## Run 
+## Run on a Local Target
+
+1. Ensure that the repository is pushed !!!!!!!!!
+
 
 ### Case 1: Run on volume identical to a host directory
 
@@ -97,16 +100,14 @@ Test: wget --no-check-certificate
 
 1. Log on: `docker exec -it --user apache  my-lap-container /bin/ash`
 2. Copy in content: `scp cap@heinrich:/tmp/dump.xml /tmp`
-
-echo "Main Page" > /tmp/list.txt
-`php /var/www/html/wiki-dir/maintenance/deleteBatch.php /tmp/list.txt` 
-
-
-3. Load MediaWiki portions: `php /var/www/html/wiki-dir/maintenance/importDump.php --report --namespaces "8" --debug < /tmp/dump.xml`
-4. Load Template portions: `php /var/www/html/wiki-dir/maintenance/importDump.php --report --namespaces "10" --debug < /tmp/dump.xml`
-5. Load the rest: `php /var/www/html/wiki-dir/maintenance/importDump.php --report --namespaces "10" --debug < /tmp/dump.xml`
+3. echo "Main Page" > /tmp/list.txt
+4. `php /var/www/html/wiki-dir/maintenance/deleteBatch.php /tmp/list.txt` 
+5. Load MediaWiki portions: `php /var/www/html/wiki-dir/maintenance/importDump.php --namespaces "8" --debug /tmp/dump.xml`
+6. Load Template portions: `php /var/www/html/wiki-dir/maintenance/importDump.php  --namespaces "10" --debug /tmp/dump.xml`
+7. Load the rest: `php /var/www/html/wiki-dir/maintenance/importDump.php --report --namespaces "10" --debug /tmp/dump.xml`
 
 ##### Note
+* We must delete the Main Page before the import, as the Main Page otherwise will be populated by a default text and not overwritten as intended.
 * We must import the MediaWiki and Template portions before the pages or else we get errors due to missing Parsifal templates or Templates.
 
 ## Debug
