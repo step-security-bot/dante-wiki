@@ -66,8 +66,6 @@ This comprises the following steps:
 
 ## Run on a Remote Target
 
-
-
 1. Build volume template   ```bin/build-volume-template.sh```
 2. Prepare docker volume:  ```volumes/bin/add-dir.sh full sample-volume /```
 3. Run processes:   ```containers/lap/bin/both.sh --db my-test-db-volume --vol sample-volume```
