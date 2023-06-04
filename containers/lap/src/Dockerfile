@@ -88,9 +88,6 @@ COPY . .
 
 #COPY localhost-key.pem                       /etc/ssl/apache2/server.key
 #COPY localhost.pem                           /etc/ssl/apache2/server.pem
-
-
-
 #COPY entrypoint.sh                           /
 
 # Expose for http and https

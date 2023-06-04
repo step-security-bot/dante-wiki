@@ -40,21 +40,10 @@ Proxy delegates https://www.clemenscap.de/dante1 to http://192.168.3.250:8080/wi
 
 ## Build Docker Images
 
-Build ssh image:
-
-In directory /containers/ssh/bin run:
-```
-  prepare.sh
-  generate.sh
-  run.sh
-  postpare.sh
-```
-
-Build tex image, based on ssh image: ```containers/tex/bin/generate.sh```
-
-Build linux-apache-php image, based on tex image: ```containers/lap/bin/generate.sh```
-
-Build mysql image: ```containers/my-mysql/bin/generate.sh```
+1. Build ssh image: `containers/ssh/bin/buildAll.sh`
+2. Build tex image, based on ssh image: ```containers/tex/bin/generate.sh```
+3. Build linux-apache-php image, based on tex image: ```containers/lap/bin/generate.sh```
+4. Build mysql image: ```containers/my-mysql/bin/generate.sh```
 
 
 ## Build Volume Template

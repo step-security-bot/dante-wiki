@@ -127,7 +127,7 @@ installExtensionGithub () {
   URL=$1
   NAME=$2
   BRANCH=$3
-  printf "\n*** INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH} ..."
+  printf "\n*** INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH} ...\n"
   printf "   Removing preexisting directory\n"
   docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions/ ${LAP_CONTAINER}  sh -c "rm -Rf ${NAME} "
   printf "   Cloning ${URL} with branch ${BRANCH} into ${NAME}\n"
@@ -136,7 +136,7 @@ installExtensionGithub () {
   docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions/${NAME} ${LAP_CONTAINER}  sh -c "rm -Rf .git "
   printf "   Injecting installation into DanteDynamicInstalls.php\n"
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "echo \"wfLoadExtension( '${NAME}' );\" >> DanteDynamicInstalls.php "
-  printf "\n*** COMPLETED INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}\n\n"
+  printf "*** COMPLETED INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}\n\n"
 }
 # endregion
 
@@ -195,46 +195,32 @@ composerInstall () {
   printf "\n\n*** DONE installing extension requirements\n\n"
 
 
-
   installExtensionGithub  https://github.com/kuenzign/WikiMarkdown  WikiMarkdown  main
-
   installExtensionGithub  https://github.com/wikimedia/mediawiki-extensions-MobileFrontend  MobileFrontend REL1_38
-
   installExtensionGithub https://github.com/labster/HideSection/ HideSection master
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RandomSelection  RandomSelection REL1_38
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-LabeledSectionTransclusion LabeledSectionTransclusion REL1_38
-
   installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RevisionSlider RevisionSlider REL1_38
 
-
-## looks like this is broken.
+##  looks like this extension is broken
 ##  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-WikEdDiff WikEdDiff REL1_38
 
-
-#  installExtensionGithub https://github.com/Universal-Omega/DynamicPageList3 DynamicPageList3 REL1_38
-
-#  installExtensionGithub https://github.com/clecap/DynamicPageList3 DynamicPageList3 master
+##  The following is broken currently in REL1_38 only, might be fine in higher releases
+##  installExtensionGithub https://github.com/Universal-Omega/DynamicPageList3 DynamicPageList3 REL1_38
+##  installExtensionGithub https://github.com/clecap/DynamicPageList3 DynamicPageList3 master
 
 ###### HACK: see README-DynamicPageList3-Clemens.md in TOPD_DIR/own for more details.
   docker cp $TOP_DIR/own/DynamicPageList3/ ${LAP_CONTAINER}:/${MOUNT}/${VOLUME_PATH}/extensions
 
-
-
-
 ### currently to be done manually 
 ###  installExtensionGithub  https://github.com/clecap/Parsifal  Parsifal  dante
-
 
   echo "DONE installing extensions"
   echo ""
 
-
-  echo ""
-  echo "*** Do a composer update on the global file"
+  printf "\n\n*** Doing a composer update on the global file\n\n"
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer update"
-  echo "DONE with final composer update"
-  echo ""
-
+  printf "\n\n***DONE with composer update\n\n"
 }
 # endregion
 
