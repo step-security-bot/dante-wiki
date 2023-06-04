@@ -127,11 +127,16 @@ installExtensionGithub () {
   URL=$1
   NAME=$2
   BRANCH=$3
-  echo ""; echo "*** INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}"
+  printf "\n*** INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH} ..."
+  printf "   Removing preexisting directory\n"
+  docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions/ ${LAP_CONTAINER}  sh -c "rm -Rf ${NAME} "
+  printf "   Cloning ${URL} with branch ${BRANCH} into ${NAME}\n"
   docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions ${LAP_CONTAINER}          sh -c " git clone ${URL} --branch ${BRANCH} ${NAME} "
+  printf "   Removing .git to save on space\n"
   docker exec -w /${MOUNT}/${VOLUME_PATH}/extensions/${NAME} ${LAP_CONTAINER}  sh -c "rm -Rf .git "
+  printf "   Injecting installation into DanteDynamicInstalls.php\n"
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "echo \"wfLoadExtension( '${NAME}' );\" >> DanteDynamicInstalls.php "
-  echo ""; echo "*** COMPLETED INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}"
+  printf "\n*** COMPLETED INSTALLING EXTENSION ${NAME} from ${URL} using branch ${BRANCH}\n\n"
 }
 # endregion
 
@@ -186,6 +191,10 @@ composerInstall () {
 
   # Install markdown-extended https://github.com/BenjaminHoegh/ParsedownExtended
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=composer.local.json  composer require benjaminhoegh/parsedown-extended"
+
+  printf "\n\n*** DONE installing extension requirements\n\n"
+
+
 
   installExtensionGithub  https://github.com/kuenzign/WikiMarkdown  WikiMarkdown  main
 
