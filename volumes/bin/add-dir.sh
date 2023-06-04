@@ -20,6 +20,25 @@ else
 fi
 
 
+# region ABORT ERROR HANDLER
+abort()
+{
+    echo >&2 '
+***************
+*** ABORTED ***
+***************
+'
+    echo "An error occurred. Exiting..." >&2
+    exit 1
+}
+
+
+main () {
+
+set -e
+trap 'abort' EXIT
+
+
 
 ## two temporary symbols
 #  TEMP: Name of the temporary busybox container which does the copying
@@ -74,3 +93,10 @@ printf "*** Stopping and removing temporary container..."
 docker stop ${TEMP}
 docker rm ${TEMP}
 printf "DONE stopping and removing temporary container"
+
+
+trap : EXIT         # switch trap command back to noop (:) on EXIT
+
+
+}
+
