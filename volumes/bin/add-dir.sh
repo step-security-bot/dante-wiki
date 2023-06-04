@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# cleans in volume ${VOLUME_NAME} the directory ${MOUNT}/${VOLUME_PATH}
 # copies the contents of directory volumes/${DIR_NAME}/content to the volume ${VOLUME_NAME} and there at path ${VOLUME_PATH}
 # additionally executes shell commands in volumes/${DIR_NAME}/spec/cmd.sh
 
@@ -8,15 +9,17 @@
 # VOLUME_PATH   we are copying to VOLUME_PATH in VOLUME_NAME
 
 # Parse the command line
-if [ "$#" -ne 3 ]; then
-  echo "Usage: $0  DIR_NAME  VOLUME_NAME  VOLUME_PATH " >&2
-  echo "Adds contents of directory DIR_NAME to volume VOLUME_NAME at VOLUME_PATH " >&2
-  exit 1
-else
+if [ "$#" -eq 3 ]; then
   export DIR_NAME=$1
   export VOLUME_NAME=$2
   export VOLUME_PATH=$3
+else
+  echo "Usage: $0  DIR_NAME  VOLUME_NAME  VOLUME_PATH " >&2
+  echo "Adds contents of directory DIR_NAME to volume VOLUME_NAME at VOLUME_PATH " >&2
+  exit 1
 fi
+
+
 
 ## two temporary symbols
 #  TEMP: Name of the temporary busybox container which does the copying
@@ -35,11 +38,15 @@ printf "\n\n\n\n"
 printf "*** Ensuring that the temporary container ${TEMP} is available..."
 docker stop ${TEMP}
 docker rm ${TEMP}
-printf "DONE ensuring\n"
+printf "DONE ensuring\n\n"
 
-printf "*** Starting a temporary container ${TEMP} for ${VOLUME_NAME}..."
+printf "*** Starting a temporary container ${TEMP} for ${VOLUME_NAME} at mount point ${MOUNT}..."
 docker run --name ${TEMP} -d -t --volume ${VOLUME_NAME}:/${MOUNT} alpine
-printf "DONE starting\n"
+printf "DONE starting\n\n"
+
+printf "*** Cleaning up existing directory ${MOUNT}/${VOLUME_PATH}..."
+docker exec ${TEMP} rm -Rf ${MOUNT}/${VOLUME_PATH}
+printf "DONE cleaning\n\n"
 
 # NOTE: we copy into the mount point at the container, not into the volume
 
