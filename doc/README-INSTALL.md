@@ -95,10 +95,19 @@ Test: wget --no-check-certificate
 
 ## Startup Content: From large dump on file system  (PRIVATE !!!!!)
 
-1. Log on: `docker exec -it my-lap-container /bin/ash`
+1. Log on: `docker exec -it --user apache  my-lap-container /bin/ash`
 2. Copy in content: `scp cap@heinrich:/tmp/dump.xml /tmp`
-3. Load content: `php /var/www/html/wiki-dir/maintenance/importDump.php --report --debug < /tmp/dump.xml`
 
+echo "Main Page" > /tmp/list.txt
+`php /var/www/html/wiki-dir/maintenance/deleteBatch.php /tmp/list.txt` 
+
+
+3. Load MediaWiki portions: `php /var/www/html/wiki-dir/maintenance/importDump.php --report --namespaces "8" --debug < /tmp/dump.xml`
+4. Load Template portions: `php /var/www/html/wiki-dir/maintenance/importDump.php --report --namespaces "10" --debug < /tmp/dump.xml`
+5. Load the rest: `php /var/www/html/wiki-dir/maintenance/importDump.php --report --namespaces "10" --debug < /tmp/dump.xml`
+
+##### Note
+* We must import the MediaWiki and Template portions before the pages or else we get errors due to missing Parsifal templates or Templates.
 
 ## Debug
 

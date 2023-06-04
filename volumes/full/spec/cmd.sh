@@ -205,7 +205,7 @@ addingAssets () {
 
 cleanUp 
 
-makeWikiLocal 1.38 0 wiki-dir
+makeWikiLocal 1.39 0 wiki-dir
 
 getSkins wiki-dir
 
