@@ -154,7 +154,7 @@ composerInstall () {
 
   printf "\n\n*** Doing COMPOSER based installations "
 
-  # ensure we start with a clean DanteDynamicInstalls.php file"
+  # ensure we start with a clean DanteDynamicInstalls.php file as this file will autocollect loadings of installed extensions"
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c "rm -f DanteDynamicInstalls.php "
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER} sh -c " echo \"<?php \" >> DanteDynamicInstalls.php "
 
@@ -551,7 +551,7 @@ echo "...DONE"
 
 
 
-# region  initialize    Initialization function for an individual WIKI
+# region  INITIALIZE    Initialization function for an individual WIKI
 #
 #
 initialize () {
@@ -561,7 +561,7 @@ initialize () {
   DB_PASS="password-$1"
   WK_USER=$1
   WK_PASS="password-$1"
-# TODO: must offer possibility to use a real password
+  # TODO: must offer possibility to use a real password
   echo "*** Initialize sees DB_USER=${DB_USER}, DB_PASS=${DB_PASS}, WK_USER=${WK_USER}, WK_PASS=${WK_PASS}"
 
   # path to the wiki inside of the volume
@@ -577,9 +577,9 @@ initialize () {
   fi
   echo ""
 
-echo ""; echo "";
-echo "************************************************************************************* ONLY PARTIAL STUFF DONE, much is commented out ";
-echo "";
+  echo ""; echo "";
+  echo "************************************************************************************* ONLY PARTIAL STUFF DONE, much is commented out ";
+  echo ""
 
   addDatabase ${DB_NAME} ${DB_USER} ${DB_PASS}
 
@@ -587,8 +587,7 @@ echo "";
   # this is necessary, since the installscript does an autoregistration of some components, for example the installed skins
   composerInstall
 
-  # remove to have a clean start for the install routines
-  docker exec ${LAP_CONTAINER} rm ${MOUNT}/${VOLUME_PATH}/LocalSettings.php
+  docker exec ${LAP_CONTAINER} rm ${MOUNT}/${VOLUME_PATH}/LocalSettings.php      # remove to have a clean start for install routines
 
   runMWInstallScript
   addingReferenceToDante

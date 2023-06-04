@@ -2,13 +2,9 @@
 
 # Pulls all the work from clecap/dante-delta into this directory
 
-# 1) initialize a git in here and set the .gitignore to spec/.gitignore
-
-
 # get directory where this script resides wherever it is called from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WIKI=${DIR}/../content/wiki-dir
-
 
 # go to main directory of wiki
 cd ${WIKI}
@@ -16,32 +12,32 @@ cd ${WIKI}
 printf "\n_____________________\n"
 
 # ensuring we are starting from a clean slate
-printf "*** Removing git directory..."
+printf "*** git-pull-from-delta.sh: Removing git directory..."
 rm -Rf .git
 printf "DONE removing git directory\n\n"
 
 # initialize a git there
-printf "*** Initializing a git..."
-git init --initial-branch=master
-git config --local core.excludesfile ${DIR}/../../spec/.gitignore
+printf "*** git-pull-from-delta.sh: git-pull-from-delta.sh: Initializing a git..."
+git init --initial-branch=master                                        # initialize; silence hint on other branch names
+git config --local core.excludesfile ${DIR}/../../spec/.gitignore       # configure this git to use spec/.gitignore
 printf "DONE initializing a git\n\n"
 
 # connect to the dante delta repository
-printf "*** adding github as remote..."
+printf "*** git-pull-from-delta.sh: adding github as remote..."
 git remote add origin https://github.com/clecap/dante-delta.git
-printf "DONE adding github as remote\n"
+printf "DONE adding github as remote\n\n"
 
-printf "***fetching origin..."
+printf "*** git-pull-from-delta.sh: fetching origin..."
 git fetch origin
-printf "DONE fetching origin\n"
+printf "DONE fetching origin\n\n"
 
-printf "***hard reset on local git..."
+printf "*** git-pull-from-delta.sh: doing a hard reset on local git..."
 git reset --hard origin/main
-printf "DONE hard reset"
+printf "DONE hard reset\n\n"
   
-echo "*** copy in some private credentials which we do not want to place into the repository and therefore store locally on the host"
+printf "*** git-pull-from-delta.sh: copying in some private credentials which we do not want to place into the repository and therefore store locally on the host"
 cp ${DIR}/../../../conf/mediawiki-PRIVATE.php ${WIKI}
+printf "DONE copying in\n\~"
 
-echo ""; echo "DONE"; echo ""
 
-printf "\033[31m completed GIT PULL from DELTA \033[0m \n"
+printf "\033[31m completed git-pull-from-delta.sh \033[0m \n"
