@@ -45,6 +45,7 @@ else                       # We were called with parameters.
     case $1 in 
       (--site-server) 
         MW_SITE_SERVER="$2";;
+
       (--composerInstall)
         composerInstall 
       (*) 
@@ -100,6 +101,7 @@ composerPermissions () {
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer config --no-plugins allow-plugins.composer/package-versions-deprecated true  "
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " composer config --no-plugins allow-plugins.composer/installers true  "  
 
+  docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c "touch composer.local.json"    # need the file to exist before being able to configure
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=${MOUNT}/${VOLUME_PATH}/composer.local.json composer config --no-plugins allow-plugins.wikimedia/composer-merge-plugin true       "
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=${MOUNT}/${VOLUME_PATH}/composer.local.json composer config --no-plugins allow-plugins.composer/package-versions-deprecated true  "
   docker exec -w /${MOUNT}/${VOLUME_PATH} ${LAP_CONTAINER}   sh -c " COMPOSER=${MOUNT}/${VOLUME_PATH}/composer.local.json composer config --no-plugins allow-plugins.composer/installers true  "  
@@ -496,8 +498,8 @@ for i in *; do
     NAME="${BASH_REMATCH[2]}"
     echo "DOLLARMATCH   ${BASH_REMATCH}   SPLITS:   ${PREFIX}   and    ${NAME}"
     printf "** Doing first a copy to prefix-free filename ${NAME} and then an import prefixed by ${PREFIX}\n"
-    echo "COMMAND: docker cp ${TOP_DIR}/assets/initial-contents/$i  ${LAP_CONTAINER}:/${MOUNT}/${TARGET}/${NAME}"
-    docker cp ${TOP_DIR}/assets/initial-contents/$i  ${LAP_CONTAINER}:/${MOUNT}/${TARGET}/${NAME}
+    echo "COMMAND: docker cp ${TOP_DIR}/assets/initial-contents/$i  ${LAP_CONTAINER}:/${MOUNT}/${TARGET}/${NAME}/assets/initial-contents"
+    docker cp ${TOP_DIR}/assets/initial-contents/$i  ${LAP_CONTAINER}:/${MOUNT}/${TARGET}/${NAME}/assets/initial-contents
     docker exec ${LAP_CONTAINER} php /var/www/html/${TARGET}/maintenance/importTextFiles.php --rc -s "Imported by wiki-init.sh" --overwrite --prefix "${BASH_REMATCH[1]}" "${MOUNT}/${TARGET}/${BASH_REMATCH[2]}"
   else 
     printf "** Doing first a normal copy and then a normal import\n"
@@ -537,10 +539,6 @@ docker exec ${LAP_CONTAINER} /bin/sh -c "echo \"<a href='/${VOLUME_PATH}/index.p
 
 echo "...DONE"
 }
-
-
-
-
 
 
 
@@ -585,7 +583,9 @@ initialize () {
 
   runMWInstallScript
   addingReferenceToDante
-  initialContents ${VOLUME_PATH}
+  
+  # initialContents ${VOLUME_PATH}   # currently not used 
+
   printf "\nDONE   *** INITIALIZING WIKI ***\n\n"
 }
 ##
@@ -604,11 +604,12 @@ main () {
 
 set -e                                  # abort execution on any error
 trap 'abort' EXIT                       # call abort on EXIT
+
+parseCommandLine 
+
 WIKIS="${DIR}/../content/wiki-"*        # collect list of wikis from existing directory structure
 
 printf "\n*** List of wiki subdirectories found: ${WIKIS} \n"
-
-parseCommandLine 
 
 for WIKI in ${WIKIS}
 do
@@ -630,6 +631,8 @@ done
 
 trap : EXIT         # switch trap command back to noop (:) on EXIT
 printf "*** We completed the entire wiki-init.sh script ***\n\n"
+
+printf "*** The Wiki is available at ${MW_SITE_SERVER} ***"
 
 }
 # endregion

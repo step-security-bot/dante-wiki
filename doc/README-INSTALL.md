@@ -40,6 +40,7 @@ Proxy delegates https://www.clemenscap.de/dante1 to http://192.168.3.250:8080/wi
 
 ## Build Docker Images
 
+
 1. Build ssh image: `containers/ssh/bin/buildAll.sh`
 2. Build tex image, based on ssh image: ```containers/tex/bin/generate.sh```
 3. Build linux-apache-php image, based on tex image: ```containers/lap/bin/generate.sh```
@@ -50,7 +51,7 @@ Proxy delegates https://www.clemenscap.de/dante1 to http://192.168.3.250:8080/wi
 
 ```bin/build-volume-template.sh```
 
-This consists of:
+This comprises the following steps:
 1. Clean the template directory: ```rm -Rf volumes/full/content```
 2. Build a directory serving as template for the working volume for the lap container: ```volumes/full/spec/cmd.sh```
 3. Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
