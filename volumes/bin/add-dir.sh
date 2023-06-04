@@ -94,9 +94,7 @@ docker stop ${TEMP}
 docker rm ${TEMP}
 printf "DONE stopping and removing temporary container"
 
-
 trap : EXIT         # switch trap command back to noop (:) on EXIT
-
-
 }
 
+main 
