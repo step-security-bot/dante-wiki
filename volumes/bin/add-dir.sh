@@ -35,8 +35,7 @@ abort()
 
 main () {
 
-set -e
-trap 'abort' EXIT
+
 
 
 
@@ -54,10 +53,13 @@ SRC=${DIR}/../../volumes/${DIR_NAME}/content/.
 
 printf "\n\n\n\n"
 
-printf "*** Ensuring that the temporary container ${TEMP} is available..."
+printf "*** Ensuring that the name of the temporary container ${TEMP} is available (may fail, is ok)..."
 docker stop ${TEMP}
 docker rm ${TEMP}
 printf "DONE ensuring\n\n"
+
+set -e
+trap 'abort' EXIT
 
 printf "*** Starting a temporary container ${TEMP} for ${VOLUME_NAME} at mount point ${MOUNT}..."
 docker run --name ${TEMP} -d -t --volume ${VOLUME_NAME}:/${MOUNT} alpine
