@@ -11,7 +11,7 @@ printf "\n\n__________ installParsifal.sh __________\n\n"
 # go to extensions directory
 cd ${WIKI}/extensions
 
-# remove Parsifal if still there
+# remove Parsifal if it is still there
 printf "*** installParsifal.sh: removing preexisting Parsifal to ensure clean start..."
 rm -Rf ${WIKI}/extensions/Parsifal
 printf "DONE removing\n\n"

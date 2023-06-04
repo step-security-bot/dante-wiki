@@ -633,7 +633,7 @@ done
 trap : EXIT         # switch trap command back to noop (:) on EXIT
 printf "*** We completed the entire wiki-init.sh script ***\n\n"
 
-printf "*** The Wiki is available at ${MW_SITE_SERVER} ***"
+printf "*** The Wiki is available at ${MW_SITE_SERVER} "
 
 }
 # endregion

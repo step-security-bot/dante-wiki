@@ -46,6 +46,10 @@ Proxy delegates https://www.clemenscap.de/dante1 to http://192.168.3.250:8080/wi
 3. Build linux-apache-php image, based on tex image: ```containers/lap/bin/generate.sh```
 4. Build mysql image: ```containers/my-mysql/bin/generate.sh```
 
+## Configure
+1. Prepare file ```conf/customize-PRIVATE.sh``` following ```customize-SAMPLE.sh```
+2. Prepare file ```conf/mediawiki-PRIVATE.php``` following ```mediawiki-SAMPLE.php```
+
 
 ## Build Volume Template
 
@@ -57,34 +61,42 @@ This comprises the following steps:
 3. Pull Dante Patches from github: ```volumes/full/spec/git-pull-from-delta.sh```
 4. Install Parsifal: ```volumes/full/spec/git-clone-dante-from-parsifal.sh```
 
-## Run
 
-### Case 1: Run on volume identical to a host directory
 
-Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
 
-##### Debug:
-Test: wget --no-check-certificate
+## Run on a Remote Target
 
-### Case 2: Run on volume as seperate docker volume
+1. Build volume template   ```bin/build-volume-template.sh```
+2. Prepare docker volume:  ```volumes/bin/add-dir.sh full sample-volume /```
+3. Run processes:   ```containers/lap/bin/both.sh --db my-test-db-volume --vol sample-volume```
+4. Initialize Wiki: ```volumes/full/spec/wiki-init.sh```
 
-Prepare the docker volume: ```volumes/bin/add-dir.sh full sample-volume /```
 
-Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --vol sample-volume```
 
 ##### Debug:
 * Look into container (on target machine): ```docker exec -it my-lap-container /bin/ash```
 
 
-## Configure
-1. Prepare file ```conf/customize-PRIVATE.sh``` following ```customize-SAMPLE.sh```
-2. Prepare file ```conf/mediawiki-PRIVATE.php``` following ```mediawiki-SAMPLE.php```
+## Run 
 
-## Initialize
+### Case 1: Run on volume identical to a host directory
 
-Initialize Wiki: ```volumes/full/spec/wiki-init.sh```
+1. Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
+2. Initialize Wiki: ```volumes/full/spec/wiki-init.sh```
 
-## Look into docker container
+##### Debug:
+Test: wget --no-check-certificate
+
+## Startup Content: From large dump on file system  (PRIVATE !!!!!)
+
+1. Log on: `docker exec -it my-lap-container /bin/ash`
+2. Copy in content: `scp cap@heinrich:/tmp/dump.xml /tmp`
+3. Load content: `php /var/www/html/wiki-dir/maintenance/importDump.php --report --debug < /tmp/dump.xml`
+
+
+## Debug
+
+#### Look into docker container
 
 On the machine:  ```docker exec -it CONTAINER_NAME /bin/ash```
 
@@ -94,7 +106,7 @@ login-key is to be found on /containers/ssh of the machine on which the containe
 
 
 
-## Look into containers
+#### Look into containers
 
 ssh:
 tex:
@@ -103,7 +115,7 @@ my-mysql:  ssh -i login-key cap@IP-OF-MY-MYSQL-CONTAINER‚
 
 wget --no-check-certificate
 
-## Clean
+#### Clean
 
 docker stop my-lap-container
 docker rm my-lap-container
