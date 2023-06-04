@@ -76,24 +76,24 @@ printf "DONE building the required directory path\n"
 
 printf "*** ls on ${MOUNT}..."
 docker exec ${TEMP} ls ${MOUNT}
-printf "DONE ls on ${MOUNT}\n"
+printf "DONE ls on ${MOUNT}\n\n"
 
 printf "*** cp ${SRC}  ${TEMP}:/${MOUNT}/${VOLUME_PATH}..."
 docker cp ${SRC} ${TEMP}:/${MOUNT}/${VOLUME_PATH}
-printf "DONE cp\n"
+printf "DONE cp\n\n"
 
 printf "*** Setting permissions on ${MOUNT} to 100.101 for apache.apache  ..."
 docker exec ${TEMP} /bin/ash -c "chown -R 100.101 ${MOUNT}"
-printf "DONE fixing permissions\n"
+printf "DONE fixing permissions\n\n"
 
 printf "*** ls on ${MOUNT}..."
 docker exec ${TEMP} ls -l ${MOUNT}
-printf "DONE ls on ${MOUNT}\n"
+printf "DONE ls on ${MOUNT}\n\n"
 
 printf "*** Stopping and removing temporary container..."
 docker stop ${TEMP}
 docker rm ${TEMP}
-printf "DONE stopping and removing temporary container"
+printf "DONE stopping and removing temporary container\n\n"
 
 trap : EXIT         # switch trap command back to noop (:) on EXIT
 }
