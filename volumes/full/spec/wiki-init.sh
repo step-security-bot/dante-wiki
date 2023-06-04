@@ -609,9 +609,9 @@ echo "";
 ##
 main () {
 
-
-trap 'abort' 0
 set -e
+trap 'abort' EXIT                 # call abort on EXIT
+
 
 
 WIKIS="${DIR}/../content/wiki-"*
@@ -642,7 +642,7 @@ done
 
 
 
-trap : 0
+trap : EXIT  # switch trap command back to noop (:) on EXIT
 printf "*** We completed the entire wiki-init.sh script ***\n\n"
 
 }
