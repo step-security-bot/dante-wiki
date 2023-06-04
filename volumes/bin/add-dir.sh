@@ -28,7 +28,6 @@ abort()
 *** ABORTED ***
 ***************
 '
-    echo "An error occurred. Exiting..." >&2
     exit 1
 }
 
@@ -66,7 +65,7 @@ docker run --name ${TEMP} -d -t --volume ${VOLUME_NAME}:/${MOUNT} alpine
 printf "DONE starting\n\n"
 
 printf "*** Cleaning up existing directory ${MOUNT}/${VOLUME_PATH}..."
-docker exec ${TEMP} rm -Rf ${MOUNT}/${VOLUME_PATH}
+docker exec ${TEMP} rm -Rf ${MOUNT}/${VOLUME_PATH}/*
 printf "DONE cleaning\n\n"
 
 # NOTE: we copy into the mount point at the container, not into the volume
