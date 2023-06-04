@@ -13,4 +13,7 @@ ${TOP_DIR}volumes/bin/add-dir.sh full sample-volume /
 
 ${TOP_DIR}containers/lap/bin/both.sh --db my-test-db-volume --vol sample-volume
 
+sleep 3
+# wait for DB to come up ....
+
 ${TOP_DIR}volumes/full/spec/wiki-init.sh
