@@ -7,5 +7,8 @@ docker rm my-lap-container
 docker stop my-mysql
 docker rm my-mysql
 
+docker volume rm my-test-db-volume
+docker volume rm sample-volume
+
 printf "\n\nDONE"
 
