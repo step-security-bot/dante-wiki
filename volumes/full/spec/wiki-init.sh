@@ -626,6 +626,7 @@ do
   if [[ $WIKI =~ wiki-([a-zA-Z0-9_]+)$ ]]; 
   then 
 
+     echo "hi"
 #    initialize ${BASH_REMATCH[1]}
   else 
     printf "\n*** Skipping ${WIKI} as it is not in proper format\n" 
