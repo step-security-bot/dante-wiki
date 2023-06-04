@@ -586,7 +586,7 @@ initialize () {
   # this is necessary, since the installscript does an autoregistration of some components, for example the installed skins
   composerInstall
 
-  docker exec ${LAP_CONTAINER} rm ${MOUNT}/${VOLUME_PATH}/LocalSettings.php      # remove to have a clean start for install routines
+  docker exec ${LAP_CONTAINER} rm -f ${MOUNT}/${VOLUME_PATH}/LocalSettings.php      # remove to have a clean start for install routines, ignore if not existant
 
   runMWInstallScript
   addingReferenceToDante

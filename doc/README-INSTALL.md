@@ -83,7 +83,7 @@ Prepare the docker volume: ```volumes/bin/add-dir.sh full sample-volume /```
 Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --vol sample-volume```
 
 ##### Debug:
-* Look into container (on target machine): ```docker -it my-lap-container /bin/ash```
+* Look into container (on target machine): ```docker exec -it my-lap-container /bin/ash```
 
 
 ## Configure
