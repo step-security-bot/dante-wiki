@@ -609,25 +609,20 @@ echo "";
 ##
 main () {
 
-set -e
-trap 'abort' EXIT                 # call abort on EXIT
-
-
-
-WIKIS="${DIR}/../content/wiki-"*
+set -e                                  # abort execution on any error
+trap 'abort' EXIT                       # call abort on EXIT
+WIKIS="${DIR}/../content/wiki-"*        # collect list of wikis from existing directory structure
 
 printf "\n*** List of wiki subdirectories found: ${WIKIS} \n"
 
-  parseCommandLine 
+parseCommandLine 
 
 for WIKI in ${WIKIS}
 do
   printf "\n*** Initializing WIKI: ${WIKI}\n"
   if [[ $WIKI =~ wiki-([a-zA-Z0-9_]+)$ ]]; 
   then 
-
-     echo "hi"
-#    initialize ${BASH_REMATCH[1]}
+    initialize ${BASH_REMATCH[1]}
   else 
     printf "\n*** Skipping ${WIKI} as it is not in proper format\n" 
   fi
@@ -640,9 +635,7 @@ done
 #docker exec ${LAP_CONTAINER} /bin/sh -c "chown -R apache.apache /var/www/html"
 #printf "DONE fixing file ownerships\n\n"
 
-
-
-trap : EXIT  # switch trap command back to noop (:) on EXIT
+trap : EXIT         # switch trap command back to noop (:) on EXIT
 printf "*** We completed the entire wiki-init.sh script ***\n\n"
 
 }
