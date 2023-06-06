@@ -129,11 +129,12 @@ getSkins () {
 #  echo ""
 #  cd ${TOP}/skins
 
+  # removed, since the skin uses a deprecated method in 1.39
   # CologneBlue
-  echo ""; echo "*** Installing skin CologneBlue"
-  mkdir CologneBlue
-  git clone -b $MW_VERSION --single-branch https://gerrit.wikimedia.org/r/mediawiki/skins/CologneBlue CologneBlue 
-  echo "wfLoadSkin( 'CologneBlue' );" >> ${TOP}/DanteSkinsInstalled.php
+  # echo ""; echo "*** Installing skin CologneBlue"
+  # mkdir CologneBlue
+  # git clone -b $MW_VERSION --single-branch https://gerrit.wikimedia.org/r/mediawiki/skins/CologneBlue CologneBlue 
+  # echo "wfLoadSkin( 'CologneBlue' );" >> ${TOP}/DanteSkinsInstalled.php
 
   # Modern
   echo ""; echo "*** Installing skin Modern"
