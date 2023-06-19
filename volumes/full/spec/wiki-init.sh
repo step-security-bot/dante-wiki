@@ -198,12 +198,23 @@ composerInstall () {
   printf "\n\n*** DONE installing extension requirements\n\n"
 
 
-  installExtensionGithub  https://github.com/kuenzign/WikiMarkdown  WikiMarkdown  main
-  installExtensionGithub  https://github.com/wikimedia/mediawiki-extensions-MobileFrontend  MobileFrontend REL1_39
-  installExtensionGithub https://github.com/labster/HideSection/ HideSection master
-  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RandomSelection  RandomSelection REL1_39
-  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-LabeledSectionTransclusion LabeledSectionTransclusion REL1_39
-  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-RevisionSlider RevisionSlider REL1_39
+  installExtensionGithub  https://github.com/kuenzign/WikiMarkdown                                        WikiMarkdown  main
+  installExtensionGithub  https://github.com/wikimedia/mediawiki-extensions-MobileFrontend                MobileFrontend REL1_39
+  installExtensionGithub  https://github.com/labster/HideSection/                                         HideSection master
+  installExtensionGithub  https://github.com/wikimedia/mediawiki-extensions-RandomSelection               RandomSelection REL1_39
+  installExtensionGithub  https://github.com/wikimedia/mediawiki-extensions-LabeledSectionTransclusion    LabeledSectionTransclusion REL1_39
+  installExtensionGithub  https://github.com/wikimedia/mediawiki-extensions-RevisionSlider                RevisionSlider REL1_39
+
+
+
+  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-NativeSvgHandler               NativeSvgHandler  REL1_39
+
+#  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-DrawioEditor                   DrawioEditor REL1_39
+# This extension is broken currently
+#  Use my own version
+  installExtensionGithub https://github.com/clecap/mediawiki-extensions-DrawioEditor                      DrawioEditor master
+  docker exec -w /${MOUNT}/${VOLUME_PATH}/ ${LAP_CONTAINER}  sh -c "wget https://raw.githubusercontent.com/clecap/mediawiki-extensions-DrawioEditor/master/PATCH-UploadedFile.php -O includes/libs/ParamValidator/Util/UploadedFile.php"
+
 
 ##  looks like this extension is broken
 ##  installExtensionGithub https://github.com/wikimedia/mediawiki-extensions-WikEdDiff WikEdDiff REL1_39
