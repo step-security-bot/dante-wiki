@@ -31,9 +31,10 @@ printf "*** git-pull-from-delta.sh: fetching origin..."
 git fetch origin
 printf "DONE fetching origin\n\n"
 
-printf "*** git-pull-from-delta.sh: doing a hard reset on local git..."
-git reset --hard origin/main
-printf "DONE hard reset\n\n"
+#printf "*** git-pull-from-delta.sh: doing a hard reset on local git and pulling from master
+git reset --hard origin/master
+git pull origin master
+#printf "DONE hard reset\n\n"
   
 printf "*** git-pull-from-delta.sh: copying in some private credentials which we do not want to place into the repository and therefore store locally on the host"
 cp ${DIR}/../../../conf/mediawiki-PRIVATE.php ${WIKI}

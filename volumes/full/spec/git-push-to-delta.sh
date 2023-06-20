@@ -48,7 +48,7 @@ echo ""
 
 
 echo "*** Push to upstream"
-git push --set-upstream origin main
+git push --set-upstream origin master
 echo ""
 
 
