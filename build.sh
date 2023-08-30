@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./global-names.sh
+source ./global-names.sh  
 
 # Parse the command line
 if [ "$#" -eq 0 ]; then
