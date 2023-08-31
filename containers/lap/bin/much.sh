@@ -10,6 +10,6 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 ${DIR}/../../../volumes/full/spec/cmd.sh
-${DIR}/../../../containers/lap/bin/both.sh --cleandb my-test-db-volume  --dir full
+${DIR}/../../../images/lap/bin/both.sh --cleandb my-test-db-volume  --dir full
 ${DIR}/../../../volumes/full/spec/git-pull-from-delta.sh
 ${DIR}/../../../volumes/full/spec/wiki-init.sh

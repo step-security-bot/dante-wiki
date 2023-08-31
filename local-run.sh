@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# run local docker image for the docker context in containers/${CONTAINER_NAME}/src
+# run local docker image for the docker context in images/${CONTAINER_NAME}/src
 # 
 
 ################# DEPRECATE THIS MAYBE 

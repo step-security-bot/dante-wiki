@@ -32,21 +32,21 @@ echo ____________________________________________
 echo "*** Prepare a local directory structure"
 
 #region ** make local file system
-mkdir containers/${FAMILY_NAME}
-mkdir containers/${FAMILY_NAME}/build
-mkdir containers/${FAMILY_NAME}/src
-mkdir containers/${FAMILY_NAME}/def
-mkdir containers/${FAMILY_NAME}/efs
+mkdir images/${FAMILY_NAME}
+mkdir images/${FAMILY_NAME}/build
+mkdir images/${FAMILY_NAME}/src
+mkdir images/${FAMILY_NAME}/def
+mkdir images/${FAMILY_NAME}/efs
 #endregion
 
 #region ** copy but do not overwrite a possibly existing file
-cp -n templates/*.json5       containers/${FAMILY_NAME}/def
-cp -n templates/Dockerfile    containers/${FAMILY_NAME}/src/
-cp -n templates/buildspec.yml containers/${FAMILY_NAME}/src/
-cp -n templates/entrypoint.sh containers/${FAMILY_NAME}/src/
+cp -n templates/*.json5       images/${FAMILY_NAME}/def
+cp -n templates/Dockerfile    images/${FAMILY_NAME}/src/
+cp -n templates/buildspec.yml images/${FAMILY_NAME}/src/
+cp -n templates/entrypoint.sh images/${FAMILY_NAME}/src/
 #endregion
 
 #region ** remove any build artifacts which might still be there
-rm    containers/${FAMILY_NAME}/build/*
+rm    images/${FAMILY_NAME}/build/*
 #endregion
 #endregion

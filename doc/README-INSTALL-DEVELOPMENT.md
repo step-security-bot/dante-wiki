@@ -44,10 +44,10 @@ Proxy delegates https://www.clemenscap.de/dante1 to http://192.168.3.250:8080/wi
 ## Build Docker Images
 
 
-1. Build ssh image: `containers/ssh/bin/buildAll.sh`
-2. Build tex image, based on ssh image: ```containers/tex/bin/generate.sh```
-3. Build linux-apache-php image, based on tex image: ```containers/lap/bin/generate.sh```
-4. Build mysql image: ```containers/my-mysql/bin/generate.sh```
+1. Build ssh image: `images/ssh/bin/buildAll.sh`
+2. Build tex image, based on ssh image: ```images/tex/bin/generate.sh```
+3. Build linux-apache-php image, based on tex image: ```images/lap/bin/generate.sh```
+4. Build mysql image: ```images/my-mysql/bin/generate.sh```
 
 ## Configure
 1. Prepare file ```conf/customize-PRIVATE.sh``` following ```customize-SAMPLE.sh```
@@ -75,7 +75,7 @@ This comprises the following steps:
 #### More detailed
 1. Build volume template   ```bin/build-volume-template.sh```
 2. Prepare docker volume:  ```volumes/bin/add-dir.sh full sample-volume /```
-3. Run processes:   ```containers/lap/bin/both.sh --db my-test-db-volume --vol sample-volume```
+3. Run processes:   ```images/lap/bin/both.sh --db my-test-db-volume --vol sample-volume```
 4. Initialize Wiki: ```volumes/full/spec/wiki-init.sh```
 
 
@@ -91,7 +91,7 @@ This comprises the following steps:
 
 ### Case 1: Run on volume identical to a host directory
 
-1. Run both processes: ```containers/lap/bin/both.sh --db my-test-db-volume --dir full```
+1. Run both processes: ```images/lap/bin/both.sh --db my-test-db-volume --dir full```
 2. Initialize Wiki: ```volumes/full/spec/wiki-init.sh```
 
 ##### Debug:
@@ -119,11 +119,11 @@ On the machine:  ```docker exec -it CONTAINER_NAME /bin/ash```
 
 From outside:  ssh -i login-key -p 2222 cap@localhost
 
-login-key is to be found on /containers/ssh of the machine on which the container was run (do not confuse machines !)
+login-key is to be found on /images/ssh of the machine on which the container was run (do not confuse machines !)
 
 
 
-#### Look into containers
+#### Look into images
 
 ssh:
 tex:

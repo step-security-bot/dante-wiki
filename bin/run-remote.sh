@@ -11,7 +11,7 @@ ${TOP_DIR}/bin/build-volume-template.sh
 
 ${TOP_DIR}volumes/bin/add-dir.sh full sample-volume /
 
-${TOP_DIR}containers/lap/bin/both.sh --db my-test-db-volume --vol sample-volume
+${TOP_DIR}images/lap/bin/both.sh --db my-test-db-volume --vol sample-volume
 
 sleep 3
 # wait for DB to come up ....

@@ -1,7 +1,7 @@
 # Container ssh
 
 
-Directory containers/ssh contains a minimal training ground for generating and running a docker image with alpine 
+Directory images/ssh contains a minimal training ground for generating and running a docker image with alpine 
 and a secure shell entry into the system.
 
 ### Cheat Sheet ###

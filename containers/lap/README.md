@@ -24,7 +24,7 @@ The container provides two different possibilities for a PHP integration:
 
 PHP FPM is the more efficient and modern integration. However, we had some cases of unexplained crashes
 due to PHP problems in FPM which did not show up in MOD_PHP. We therefore want an easy possibility of 
-switching integrations without rebuilding containers.
+switching integrations without rebuilding images.
 
 ### Architecture ###
 

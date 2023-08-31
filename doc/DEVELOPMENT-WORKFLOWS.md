@@ -13,7 +13,7 @@ Execute the following **vscodium tasks**:
 * `generate image lap` 
 * `generate image my-mysql` 
 * `generate volume full` 
-* `run lap and my-mysql containers` 
+* `run lap and my-mysql images` 
 * `initialize mediawiki`
 
 ### Edit Cycle ###

@@ -66,7 +66,7 @@ fi
 # mount point of the volume or directory
 MOUNT="/var/www/html"
 
-# Names of the containers which we assume are running
+# Names of the images which we assume are running
 LAP_CONTAINER=my-lap-container
 DB_CONTAINER=my-mysql
 
