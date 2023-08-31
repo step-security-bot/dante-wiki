@@ -14,11 +14,3 @@ and a secure shell entry into the system.
 * ```ssh -i login-key -p 2222 cap@localhost```
 
 #### Running an Image as a Container ####
-
-
-
-When using port 2222 in parameters:
-
-
-
-16.7 MB
