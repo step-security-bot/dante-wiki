@@ -29,6 +29,8 @@ AWS-PRIVATE.txt
 
 # the content directories in volumes are generated locally
 volumes/full/content/**
+volumes/full/content/
+wiki-dir/
 
 parsifal-cache/
 

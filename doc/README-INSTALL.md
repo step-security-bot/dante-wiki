@@ -5,11 +5,11 @@
 ### Paths and Proxies
 
 We are constructing an HTTP based server which offers access to a number of different services which are
-residing on thes ame web server and distinguished from each other by a path prefix.
+residing on the same web server and distinguished from each other by a path prefix.
 
 The mapping of a domain name, possibly with a path prefix, will be done by a reverse proxy.
 
-This reverse proxy will also take care of.
+This reverse proxy will also take care of access restrictions.
 
 
 #### Example
@@ -22,7 +22,7 @@ Proxy delegates https://www.clemenscap.de/dante1 to http://192.168.3.250:8080/wi
 ## Prepare Requirements on Target Machine
 
 ### 1. Install Docker on Target Machine
-* Follow the instructions at 
+* Follow the instructions at https://docs.docker.com/engine/install/debian/
 * Add your user to the docker group: ```sudo usermod -aG docker ${USER}```
 * Log out and log in again as ${USER}
 * Check if docker is operative: ```docker run hello-world```

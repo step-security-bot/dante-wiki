@@ -36,7 +36,7 @@ git reset --hard origin/master
 git pull origin master
 #printf "DONE hard reset\n\n"
   
-printf "*** git-pull-from-delta.sh: copying in some private credentials which we do not want to place into the repository and therefore store locally on the host"
+printf "*** copying some private credentials from main directory into volume\n"
 cp ${DIR}/../../../conf/mediawiki-PRIVATE.php ${WIKI}
 printf "DONE copying in\n\~"
 
