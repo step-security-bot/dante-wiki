@@ -1,8 +1,8 @@
-     100 files     200 files     225 text files.
-classified 223 filesDuplicate file check 223 files (210 known unique)Unique:      100 files                                          Unique:      200 files                                               218 unique files.                              
+     100 files     200 files     226 text files.
+classified 224 filesDuplicate file check 224 files (211 known unique)Unique:      100 files                                          Unique:      200 files                                               219 unique files.                              
 Counting:  100Counting:  200      36 files ignored.
 
-github.com/AlDanial/cloc v 1.90  T=0.13 s (1545.8 files/s, 322903.5 lines/s)
+github.com/AlDanial/cloc v 1.90  T=0.13 s (1555.8 files/s, 324984.2 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
